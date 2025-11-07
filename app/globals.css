@@ -1,26 +1,125 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: 230 34% 7%;
+  --foreground: 210 40% 96%;
+  --card: 230 32% 11%;
+  --card-foreground: 210 40% 96%;
+  --popover: 230 32% 11%;
+  --popover-foreground: 210 40% 96%;
+  --primary: 249 90% 67%;
+  --primary-foreground: 217 56% 8%;
+  --secondary: 210 30% 18%;
+  --secondary-foreground: 210 40% 96%;
+  --muted: 220 23% 18%;
+  --muted-foreground: 220 12% 70%;
+  --accent: 286 72% 45%;
+  --accent-foreground: 217 33% 94%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 227 24% 24%;
+  --input: 228 26% 18%;
+  --ring: 249 90% 67%;
+  --radius: 0.8rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 230 34% 6%;
+    --foreground: 210 40% 96%;
+    --card: 230 32% 12%;
+    --card-foreground: 210 40% 96%;
+    --popover: 230 32% 12%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 249 90% 67%;
+    --primary-foreground: 217 56% 8%;
+    --secondary: 210 30% 18%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 220 23% 18%;
+    --muted-foreground: 220 12% 70%;
+    --accent: 286 72% 45%;
+    --accent-foreground: 217 33% 94%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 227 24% 24%;
+    --input: 228 26% 18%;
+    --ring: 249 90% 67%;
   }
 }
 
+* {
+  border-color: hsl(var(--border));
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans, ui-sans-serif, system-ui);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  min-height: 100vh;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: radial-gradient(circle at 10% 20%, rgba(147, 197, 253, 0.2), transparent 45%),
+    radial-gradient(circle at 80% 0%, rgba(196, 181, 253, 0.25), transparent 50%);
+  filter: blur(30px);
+  opacity: 0.9;
+}
+
+body::after {
+  background: radial-gradient(circle at 30% 70%, rgba(59, 130, 246, 0.25), transparent 45%),
+    radial-gradient(circle at 75% 80%, rgba(236, 72, 153, 0.2), transparent 50%);
+  z-index: -3;
+}
+
+::selection {
+  background-color: hsl(var(--primary) / 0.25);
+  color: hsl(var(--primary-foreground));
+}
+
+.dot-grid {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.glow-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-card::before {
+  content: "";
+  position: absolute;
+  inset: -120%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(129, 140, 248, 0.25) 120deg,
+    transparent 180deg
+  );
+  animation: rotate 6s linear infinite;
+}
+
+.glow-card::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: hsl(var(--card));
+  z-index: 1;
+}
+
+.glow-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
 }

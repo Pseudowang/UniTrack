@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(cuid())
+  email          String          @unique
+  passwordHash   String
+  createdAt      DateTime        @default(now())
+  trackedItems   TrackedItem[]
+  notifications  Notification[]
+}
+
+model TrackedItem {
+  id            String           @id @default(cuid())
+  userId        String
+  productCode   String
+  url           String
+  title         String?
+  imageUrl      String?
+  createdAt     DateTime         @default(now())
+  filters       Json?
+  snapshots     ProductSnapshot[]
+  changeEvents  ChangeEvent[]
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productCode])
+  @@index([productCode])
+}
+
+model ProductSnapshot {
+  id             String         @id @default(cuid())
+  trackedItemId  String
+  fetchedAt      DateTime       @default(now())
+  priceCent      Int?
+  listPriceCent  Int?
+  inStock        Boolean?
+  title          String?
+  rawJson        Json
+  etag           String
+  trackedItem    TrackedItem    @relation(fields: [trackedItemId], references: [id], onDelete: Cascade)
+  changeEvents   ChangeEvent[]
+
+  @@index([trackedItemId, fetchedAt])
+  @@unique([trackedItemId, etag])
+}
+
+model ChangeEvent {
+  id            String         @id @default(cuid())
+  trackedItemId String
+  snapshotId    String
+  changeType    String
+  diff          Json
+  createdAt     DateTime       @default(now())
+  trackedItem   TrackedItem    @relation(fields: [trackedItemId], references: [id], onDelete: Cascade)
+  snapshot      ProductSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  notifications Notification[]
+
+  @@index([trackedItemId, createdAt])
+}
+
+model Notification {
+  id            String        @id @default(cuid())
+  userId        String
+  changeEventId String
+  channel       String
+  status        String
+  sendAt        DateTime?
+  meta          Json?
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  changeEvent   ChangeEvent   @relation(fields: [changeEventId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
