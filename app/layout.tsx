@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { SignOutButton } from "@/components/sign-out-button";
+import { MobileNav } from "@/components/mobile-nav";
 import { auth } from "@/lib/auth";
 import "./globals.css";
 
@@ -44,7 +45,7 @@ export default async function RootLayout({
           <div className="relative flex min-h-screen flex-col">
             <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[540px] bg-gradient-to-b from-indigo-600/35 via-purple-700/10 to-transparent blur-3xl" />
             <header className="sticky top-0 z-50 border-b border-white/10 bg-[rgba(7,13,29,0.85)] backdrop-blur-md">
-              <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
+              <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
                 <Link
                   href="/"
                   className="flex items-center gap-2 text-base font-semibold tracking-tight"
@@ -66,46 +67,52 @@ export default async function RootLayout({
                   ))}
                 </nav>
                 <div className="flex items-center gap-3 text-sm">
-                  {session?.user ? (
-                    <>
-                      <Link
-                        href="/dashboard"
-                        className="text-muted-foreground transition hover:text-white"
-                      >
-                        控制台
-                      </Link>
-                      <Link
-                        href="/items/new"
-                        className="rounded-full bg-white/10 px-4 py-2 font-medium text-white transition hover:bg-white/20"
-                      >
-                        添加追踪
-                      </Link>
-                      <SignOutButton />
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        href="/auth/signin"
-                        className="text-muted-foreground transition hover:text-white"
-                      >
-                        登录
-                      </Link>
-                      <Link
-                        href="/auth/signup"
-                        className="rounded-full bg-primary px-4 py-2 font-medium text-primary-foreground shadow-lg shadow-primary/30 transition hover:bg-primary/90"
-                      >
-                        立即体验
-                      </Link>
-                    </>
-                  )}
+                  <div className="hidden items-center gap-3 md:flex">
+                    {session?.user ? (
+                      <>
+                        <Link
+                          href="/dashboard"
+                          className="text-muted-foreground transition hover:text-white"
+                        >
+                          控制台
+                        </Link>
+                        <Link
+                          href="/items/new"
+                          className="rounded-full bg-white/10 px-4 py-2 font-medium text-white transition hover:bg-white/20"
+                        >
+                          添加追踪
+                        </Link>
+                        <SignOutButton />
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          href="/auth/signin"
+                          className="text-muted-foreground transition hover:text-white"
+                        >
+                          登录
+                        </Link>
+                        <Link
+                          href="/auth/signup"
+                          className="rounded-full bg-primary px-4 py-2 font-medium text-primary-foreground shadow-lg shadow-primary/30 transition hover:bg-primary/90"
+                        >
+                          立即体验
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                  <MobileNav
+                    marketingNav={marketingNav}
+                    isAuthenticated={Boolean(session?.user)}
+                  />
                 </div>
               </div>
             </header>
-            <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
+            <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
               {children}
             </main>
             <footer className="border-t border-white/10 bg-[rgba(6,8,20,0.9)]">
-              <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
+              <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 text-sm text-muted-foreground sm:px-6 md:flex-row md:items-center md:justify-between">
                 <p>© {new Date().getFullYear()} Unitrack. 让商品变更更透明。</p>
                 <div className="flex gap-6">
                   <Link href="/#features" className="hover:text-white">

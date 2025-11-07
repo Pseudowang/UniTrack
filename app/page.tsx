@@ -76,15 +76,15 @@ const trustPoints = [
 
 export default function Home() {
   return (
-    <div className="space-y-20 text-white">
-      <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-slate-900 via-indigo-900/20 to-purple-900/30 p-10 shadow-2xl shadow-indigo-900/40">
-        <div className="grid gap-12 lg:grid-cols-[1.1fr,0.9fr]">
+    <div className="space-y-16 text-white sm:space-y-20">
+      <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-slate-900 via-indigo-900/20 to-purple-900/30 p-6 shadow-2xl shadow-indigo-900/40 sm:p-8 lg:p-10">
+        <div className="grid gap-8 lg:grid-cols-[1.1fr,0.9fr] lg:gap-12">
           <div className="space-y-8">
             <p className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-1 text-xs uppercase tracking-[0.2em] text-white/70">
               实时洞察 · 价格守护
             </p>
             <div className="space-y-6">
-              <h1 className="text-4xl font-semibold leading-tight text-white md:text-5xl">
+              <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl md:text-5xl">
                 面向运营团队的
                 <span className="bg-gradient-to-r from-indigo-300 via-sky-300 to-emerald-200 bg-clip-text text-transparent">
                   {" "}
@@ -108,7 +108,7 @@ export default function Home() {
                 <Link href="/dashboard">进入控制台</Link>
               </Button>
             </div>
-            <div className="grid gap-6 sm:grid-cols-3">
+            <div className="grid gap-4 min-[420px]:grid-cols-2 sm:gap-6 sm:grid-cols-3">
               {stats.map((item) => (
                 <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
                   <p className="text-2xl font-semibold text-white">{item.value}</p>
@@ -119,7 +119,7 @@ export default function Home() {
           </div>
           <div className="relative">
             <div className="absolute inset-0 -translate-y-6 translate-x-6 rounded-[30px] bg-indigo-500/20 blur-3xl" />
-            <Card className="relative h-full min-h-[360px] rounded-[24px] border-white/15 bg-white/5 backdrop-blur">
+            <Card className="relative h-full min-h-[280px] rounded-[24px] border-white/15 bg-white/5 backdrop-blur md:min-h-[360px]">
               <CardHeader>
                 <CardDescription className="text-white/70">
                   即将上线 · 全自动价格与库存图谱
@@ -162,11 +162,11 @@ export default function Home() {
             从数据抓取、快照比对到通知链路，每一个环节都可以自定义与拓展，满足真实业务上线需求。
           </p>
         </div>
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:gap-6 md:grid-cols-2">
           {features.map((feature) => (
             <Card
               key={feature.title}
-              className="glow-card rounded-2xl border-white/10 bg-white/5 p-6 text-white"
+              className="glow-card rounded-2xl border-white/10 bg-white/5 p-5 text-white sm:p-6"
             >
               <CardTitle className="text-xl">{feature.title}</CardTitle>
               <CardDescription className="mt-3 text-base text-white/80">
@@ -186,11 +186,11 @@ export default function Home() {
             全链路透明可追溯，可视化的流程帮助你快速拉齐团队共识。
           </p>
         </div>
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {workflow.map((step, index) => (
             <div
               key={step.title}
-              className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 lg:flex-row lg:items-center"
+              className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-4 sm:p-6 lg:flex-row lg:items-center"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-lg font-semibold text-white">
                 {index + 1}
@@ -205,7 +205,7 @@ export default function Home() {
       </section>
 
       <section id="trust" className="grid gap-8 lg:grid-cols-[1.1fr,0.9fr]">
-        <div className="space-y-6 rounded-[32px] border border-white/10 bg-white/5 p-8">
+        <div className="space-y-6 rounded-[32px] border border-white/10 bg-white/5 p-6 sm:p-8">
           <p className="text-sm uppercase tracking-[0.3em] text-white/60">Trust & Security</p>
           <h2 className="text-3xl font-semibold text-white">上线即可用的安全保障</h2>
           <p className="text-white/70">
@@ -220,7 +220,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-        <Card className="glow-card rounded-[32px] border-white/10 bg-gradient-to-br from-indigo-500/20 via-slate-900 to-purple-600/10 p-8 text-white">
+        <Card className="glow-card rounded-[32px] border-white/10 bg-gradient-to-br from-indigo-500/20 via-slate-900 to-purple-600/10 p-6 text-white sm:p-8">
           <CardHeader className="space-y-3 p-0">
             <p className="text-sm uppercase tracking-[0.3em] text-white/70">客户心声</p>
             <CardTitle className="text-2xl">“上线首周就省下了 40+ 小时人工巡检”</CardTitle>
@@ -237,7 +237,7 @@ export default function Home() {
         </Card>
       </section>
 
-      <section className="rounded-[32px] border border-white/10 bg-gradient-to-br from-slate-900 via-slate-900/70 to-slate-800/40 p-10 text-center">
+      <section className="rounded-[32px] border border-white/10 bg-gradient-to-br from-slate-900 via-slate-900/70 to-slate-800/40 p-6 text-center sm:p-8 lg:p-10">
         <p className="text-sm uppercase tracking-[0.3em] text-white/60">Ready to launch</p>
         <h2 className="mt-4 text-3xl font-semibold text-white">
           准备好让 UNIQLO 价格洞察变成团队标配了吗？

@@ -55,7 +55,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <h1 className="text-2xl font-bold sm:text-3xl">Dashboard</h1>
         <p className="text-muted-foreground">
           查看你的追踪商品、一键触发抓取，并了解最近的变更通知。
         </p>
@@ -63,7 +63,7 @@ export default async function DashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardHeader className="flex flex-col gap-2 space-y-0 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <CardTitle>追踪商品</CardTitle>
               <CardDescription>当前登录用户的追踪列表。</CardDescription>
@@ -94,7 +94,7 @@ export default async function DashboardPage() {
                           <p className="text-sm font-medium">
                             {item.title ?? `商品 ${item.productCode}`}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="break-all text-xs text-muted-foreground">
                             {item.url}
                           </p>
                         </div>
@@ -157,7 +157,7 @@ export default async function DashboardPage() {
                       key={notification.id}
                       className="rounded-md border p-3"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="font-medium text-foreground">
                           {notification.changeEvent.trackedItem.title ??
                             `商品 ${notification.changeEvent.trackedItem.productCode}`}
