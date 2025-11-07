@@ -1,4 +1,5 @@
 import { createHash } from "crypto";
+import type { Prisma } from "@prisma/client";
 
 export const UNIQLO_SPU_API_BASE = "https://www.uniqlo.cn/data/products/spu/zh_CN";
 
@@ -22,7 +23,7 @@ export interface Product {
   inStock?: boolean;
   imageUrl?: string;
   skus: ProductSku[];
-  raw: Record<string, unknown>;
+  raw: Prisma.InputJsonValue;
   etag: string;
 }
 
@@ -235,7 +236,7 @@ function mapSpuPayload(fallbackCode: string, payload: UniqloSpuResponse): Produc
     inStock,
     imageUrl: pickSummaryImage(summary, fallbackCode),
     skus,
-    raw: payload as Record<string, unknown>,
+    raw: payload as Prisma.InputJsonValue,
     etag,
   };
 }
@@ -268,12 +269,14 @@ function buildMockProduct(productCode: string): Product {
   const mockBase =
     MOCK_PRODUCTS[productCode] ?? buildMockBaseFromCode(productCode);
 
-  const raw = {
-    ...mockBase,
-    productCode,
-    source: "mock",
-    fetchedAt: new Date().toISOString(),
-  };
+  const raw = JSON.parse(
+    JSON.stringify({
+      ...mockBase,
+      productCode,
+      source: "mock",
+      fetchedAt: new Date().toISOString(),
+    })
+  ) as Prisma.InputJsonValue;
 
   const etag = computeEtag({
     title: mockBase.title,

@@ -4,9 +4,11 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import type { UrlObject } from "url";
 
 type MarketingLink = {
-  href: string;
+  id: string;
+  href: UrlObject;
   label: string;
 };
 
@@ -72,7 +74,7 @@ export function MobileNav({ marketingNav, isAuthenticated }: MobileNavProps) {
             <nav className="space-y-3">
               {marketingNav.map((item) => (
                 <Link
-                  key={item.href}
+                  key={item.id}
                   href={item.href}
                   onClick={closeMenu}
                   className="block rounded-2xl border border-white/10 px-4 py-3 text-base font-medium text-white/80 transition hover:text-white"

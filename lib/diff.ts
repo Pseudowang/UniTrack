@@ -5,10 +5,22 @@ export interface SnapshotComparable {
   inStock?: boolean | null;
 }
 
+import type { Prisma } from "@prisma/client";
+
+type Jsonish = Prisma.InputJsonValue;
+
+type SnapshotDiffPayload = Record<
+  string,
+  {
+    previous: Jsonish;
+    current: Jsonish;
+  }
+>;
+
 export interface SnapshotDiff {
   changed: boolean;
   changeType: "created" | "updated" | "none";
-  diff: Record<string, { previous: unknown; current: unknown }>;
+  diff: SnapshotDiffPayload;
 }
 
 const FIELDS: (keyof SnapshotComparable)[] = [
@@ -25,8 +37,8 @@ export function diffSnapshots(
   const diff: SnapshotDiff["diff"] = {};
 
   for (const field of FIELDS) {
-    const prevValue = previous?.[field] ?? null;
-    const nextValue = (next as SnapshotComparable)[field] ?? null;
+    const prevValue = (previous?.[field] ?? null) as Jsonish;
+    const nextValue = ((next as SnapshotComparable)[field] ?? null) as Jsonish;
 
     if (!isEqual(prevValue, nextValue)) {
       diff[field] = {

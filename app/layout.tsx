@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { UrlObject } from "url";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
@@ -23,10 +24,28 @@ export const metadata: Metadata = {
     "为电商运营和收藏控提供的全栈监控工具，实时捕捉 uniqlo.cn 商品价格、库存与变更动态。",
 };
 
-const marketingNav = [
-  { href: "/#features", label: "产品亮点" },
-  { href: "/#workflow", label: "工作流" },
-  { href: "/#trust", label: "信任与安全" },
+type MarketingNavItem = {
+  id: string;
+  href: UrlObject;
+  label: string;
+};
+
+const marketingNav: MarketingNavItem[] = [
+  {
+    id: "features",
+    href: { pathname: "/", hash: "features" },
+    label: "产品亮点",
+  },
+  {
+    id: "workflow",
+    href: { pathname: "/", hash: "workflow" },
+    label: "工作流",
+  },
+  {
+    id: "trust",
+    href: { pathname: "/", hash: "trust" },
+    label: "信任与安全",
+  },
 ];
 
 export default async function RootLayout({
@@ -58,7 +77,7 @@ export default async function RootLayout({
                 <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
                   {marketingNav.map((item) => (
                     <Link
-                      key={item.href}
+                      key={item.id}
                       href={item.href}
                       className="transition hover:text-foreground"
                     >
