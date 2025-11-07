@@ -1,18 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { crawlTrackedItem } from "@/lib/crawl";
 import { auth } from "@/lib/auth";
 
 export async function POST(
-  _request: Request,
-  { params }: { params: { productCode: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ productCode: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const productCode = params.productCode;
+  const { productCode } = await params;
 
   const trackedItems = await prisma.trackedItem.findMany({
     where: { productCode },
