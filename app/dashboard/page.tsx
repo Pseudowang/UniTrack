@@ -36,8 +36,7 @@ export default async function DashboardPage() {
     redirect("/auth/signin");
   }
 
-  const displayName =
-    session.user.name ?? session.user.email ?? "Unitrack 用户";
+  const displayName = session.user.email ?? "Unitrack 用户";
 
   const [trackedItems, notifications] = await Promise.all([
     prisma.trackedItem.findMany({
