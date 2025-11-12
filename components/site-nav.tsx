@@ -8,7 +8,7 @@ const marketingLinks = [
   { id: "features", href: "/#features", label: "功能特性" },
   { id: "how-it-works", href: "/#how-it-works", label: "工作原理" },
   { id: "benefits", href: "/#benefits", label: "产品优势" },
-];
+] as const;
 
 export async function SiteNav() {
   const session = await auth();
@@ -59,4 +59,3 @@ export async function SiteNav() {
     </nav>
   );
 }
-
