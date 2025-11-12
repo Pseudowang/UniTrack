@@ -1,263 +1,392 @@
-import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-
-const stats = [
-  { label: "实时监控商品", value: "3,500+" },
-  { label: "平均抓取频率", value: "15 min" },
-  { label: "通知触达率", value: "99.2%" },
-];
-
-const features = [
-  {
-    title: "多入口采集",
-    description: "支持商品链接、productCode 以及官方 API ID，统一解析校验。",
-    detail: "自动去重、识别 SKU，保障录入准确率。",
-  },
-  {
-    title: "价格差异告警",
-    description: "智能对比当前价与历史价，识别活动、补货与调价。",
-    detail: "支持多币种展示，构建面向运营的价格决策面板。",
-  },
-  {
-    title: "快照留存",
-    description: "每次抓取都会沉淀结构化快照与差异 JSON。",
-    detail: "帮助你追踪长周期商品表现，满足合规稽核。",
-  },
-  {
-    title: "多渠道通知",
-    description: "Web In-App 通知默认开启，未来将支持企业微信/钉钉。",
-    detail: "自定义阈值与静默时间，降低噪音。",
-  },
-];
-
-const workflow = [
-  {
-    title: "接入商品",
-    description: "复制 uniqlo.cn 任意链接、productCode 或官方接口 ID，系统会完成解析与去重。",
-  },
-  {
-    title: "云端巡检",
-    description: "Unitrack 在云端周期性抓取 SKU 详情、库存、折扣，并与最近一次快照自动 diff。",
-  },
-  {
-    title: "触发告警",
-    description: "当价格、库存或标题发生变化时，生成 Change Event 并推送通知，附带结构化 diff。",
-  },
-  {
-    title: "沉淀数据",
-    description: "所有快照、事件与通知都会留存在你的控制台，可随时导出或二次开发。",
-  },
-];
-
-const trustPoints = [
-  {
-    title: "账号与数据安全",
-    description:
-      "支持强密码策略，敏感字段通过 bcrypt+Prisma 保护；SQLite 本地开发，生产可一键切换至 PostgreSQL。",
-  },
-  {
-    title: "透明的通知链路",
-    description:
-      "每条通知都关联快照与变更事件，方便团队复盘来源，避免“黑箱”决策。",
-  },
-  {
-    title: "开发者友好",
-    description:
-      "基于 Next.js App Router、Tailwind CSS、Prisma 构建，二次定制无需重新造轮子。",
-  },
-];
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { ArrowRight, TrendingDown, Bell, BarChart3, Zap } from "lucide-react"
 
 export default function Home() {
   return (
-    <div className="space-y-16 text-white sm:space-y-20">
-      <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-gradient-to-br from-slate-900 via-indigo-900/20 to-purple-900/30 p-6 shadow-2xl shadow-indigo-900/40 sm:p-8 lg:p-10">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr,0.9fr] lg:gap-12">
-          <div className="space-y-8">
-            <p className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-1 text-xs uppercase tracking-[0.2em] text-white/70">
-              实时洞察 · 价格守护
-            </p>
-            <div className="space-y-6">
-              <h1 className="text-3xl font-semibold leading-tight text-white sm:text-4xl md:text-5xl">
-                面向运营团队的
-                <span className="bg-gradient-to-r from-indigo-300 via-sky-300 to-emerald-200 bg-clip-text text-transparent">
-                  {" "}
-                  UNIQLO 商品监控平台
-                </span>
-              </h1>
-              <p className="text-lg text-white/70">
-                Unitrack 通过准实时的 SKU 巡检、差异对比与告警，帮你第一时间洞察
-                uniqlo.cn 商品价格、库存与文案变化，让运营、买手与收藏控始终领先一步。
+    <div className="w-full bg-background">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-sm border-b border-border z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <TrendingDown className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <span className="font-bold text-lg">UniTrack</span>
+          </div>
+          <div className="hidden md:flex items-center gap-8">
+            <Link href="#features" className="text-muted-foreground hover:text-foreground transition">
+              功能特性
+            </Link>
+            <Link href="#how-it-works" className="text-muted-foreground hover:text-foreground transition">
+              工作原理
+            </Link>
+            <Link href="#benefits" className="text-muted-foreground hover:text-foreground transition">
+              产品优势
+            </Link>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/auth/signin">
+              <Button variant="ghost">登录</Button>
+            </Link>
+            <Link href="/auth/signup">
+              <Button>开始使用</Button>
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center space-y-6 mb-12">
+          <div className="inline-block px-4 py-2 bg-secondary text-secondary-foreground rounded-full text-sm font-medium">
+            ✨ 更聪明地追踪价格，更快地节省金钱
+          </div>
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-balance leading-tight">
+            再也不会错过
+            <br />
+            <span className="text-primary">优衣库的促销</span>
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-balance">
+            实时监控您喜爱的优衣库商品。价格下降时获得即时提醒。轻松节省优质服饰的购物成本。
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <Link href="/auth/signup">
+              <Button size="lg" className="gap-2">
+                立即开始追踪
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Link href="#how-it-works">
+              <Button size="lg" variant="outline">
+                查看工作原理
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Hero Image */}
+        <div className="relative h-96 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl border border-border overflow-hidden flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-full mb-4 mx-auto">
+              <BarChart3 className="w-10 h-10 text-primary-foreground" />
+            </div>
+            <p className="text-muted-foreground">智能价格追踪仪表板预览</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-secondary/30 border-y border-border">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-4">为您设计的强大功能</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">追踪优衣库价格和不错过优惠所需的一切</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Feature 1 */}
+            <div className="bg-background border border-border rounded-xl p-8 hover:border-primary/50 transition-colors">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <TrendingDown className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">实时价格追踪</h3>
+              <p className="text-muted-foreground">
+                全天候监控您最喜欢的优衣库商品。价格数据自动更新，实时掌握最新信息。
               </p>
             </div>
-            <div className="flex flex-wrap gap-4">
-              <Button asChild className="h-12 rounded-full px-6 text-base">
-                <Link href="/auth/signup">免费创建账户</Link>
-              </Button>
-              <Button
-                variant="outline"
-                asChild
-                className="h-12 rounded-full border-white/40 bg-transparent px-6 text-base text-white hover:bg-white/10"
-              >
-                <Link href="/dashboard">进入控制台</Link>
-              </Button>
+
+            {/* Feature 2 */}
+            <div className="bg-background border border-border rounded-xl p-8 hover:border-primary/50 transition-colors">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <Bell className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">即时通知提醒</h3>
+              <p className="text-muted-foreground">价格下降的那一刻就收到提醒。再也不会错过任何好交易。</p>
             </div>
-            <div className="grid gap-4 min-[420px]:grid-cols-2 sm:gap-6 sm:grid-cols-3">
-              {stats.map((item) => (
-                <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
-                  <p className="text-2xl font-semibold text-white">{item.value}</p>
-                  <p className="text-xs uppercase tracking-widest text-white/60">{item.label}</p>
+
+            {/* Feature 3 */}
+            <div className="bg-background border border-border rounded-xl p-8 hover:border-primary/50 transition-colors">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <BarChart3 className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">价格历史分析</h3>
+              <p className="text-muted-foreground">查看详细的价格趋势和历史记录。根据数据洞察做出明智的购物决策。</p>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="bg-background border border-border rounded-xl p-8 hover:border-primary/50 transition-colors">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <Zap className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">智能收藏清单</h3>
+              <p className="text-muted-foreground">构建您的个人商品清单。同时追踪多件商品，无限制添加。</p>
+            </div>
+
+            {/* Feature 5 */}
+            <div className="bg-background border border-border rounded-xl p-8 hover:border-primary/50 transition-colors">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <TrendingDown className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">价格下降提醒</h3>
+              <p className="text-muted-foreground">设置自定义价格阈值。当商品达到您的目标价格时获得提醒。</p>
+            </div>
+
+            {/* Feature 6 */}
+            <div className="bg-background border border-border rounded-xl p-8 hover:border-primary/50 transition-colors">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <BarChart3 className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">省钱仪表板</h3>
+              <p className="text-muted-foreground">追踪您的总省钱额。查看通过价格提醒和优惠节省的金额。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-4">工作原理</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">三个简单步骤开始使用</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Step 1 */}
+            <div className="relative">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-2xl mx-auto mb-6">
+                  1
                 </div>
-              ))}
+                <h3 className="text-2xl font-bold mb-3">添加商品</h3>
+                <p className="text-muted-foreground">粘贴优衣库商品链接或商品编码。UniTrack 立即开始监控价格变化。</p>
+              </div>
             </div>
-          </div>
-          <div className="relative">
-            <div className="absolute inset-0 -translate-y-6 translate-x-6 rounded-[30px] bg-indigo-500/20 blur-3xl" />
-            <Card className="relative h-full min-h-[280px] rounded-[24px] border-white/15 bg-white/5 backdrop-blur md:min-h-[360px]">
-              <CardHeader>
-                <CardDescription className="text-white/70">
-                  即将上线 · 全自动价格与库存图谱
-                </CardDescription>
-                <CardTitle className="text-2xl text-white">Unitrack Control</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 text-sm text-white/70">
-                <div className="rounded-xl border border-white/10 bg-slate-900/70 p-4">
-                  <p className="text-xs uppercase tracking-[0.3em] text-white/50">Live feed</p>
-                  <div className="mt-3 space-y-3 text-sm">
-                    <div className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
-                      <span>u0000000065241</span>
-                      <span className="text-emerald-300">-10%</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
-                      <span>465167</span>
-                      <span className="text-sky-300">补货</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
-                      <span>Ultra Light Down</span>
-                      <span className="text-rose-300">库存紧张</span>
-                    </div>
-                  </div>
+
+            {/* Arrow */}
+            <div className="hidden md:flex items-center justify-center">
+              <div className="text-muted-foreground text-3xl">→</div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="relative">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-2xl mx-auto mb-6">
+                  2
                 </div>
-                <p>
-                  数据由 Prisma + SQLite 保存，可随时迁移到 PostgreSQL。所有 API
-                  响应均保留原始 JSON，便于延伸 BI 分析。
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      <section id="features" className="space-y-8">
-        <div className="space-y-3">
-          <p className="text-sm uppercase tracking-[0.3em] text-white/60">Features</p>
-          <h2 className="text-3xl font-semibold text-white">为实时监控而生的产品细节</h2>
-          <p className="text-white/70">
-            从数据抓取、快照比对到通知链路，每一个环节都可以自定义与拓展，满足真实业务上线需求。
-          </p>
-        </div>
-        <div className="grid gap-4 md:gap-6 md:grid-cols-2">
-          {features.map((feature) => (
-            <Card
-              key={feature.title}
-              className="glow-card rounded-2xl border-white/10 bg-white/5 p-5 text-white sm:p-6"
-            >
-              <CardTitle className="text-xl">{feature.title}</CardTitle>
-              <CardDescription className="mt-3 text-base text-white/80">
-                {feature.description}
-              </CardDescription>
-              <CardContent className="mt-4 p-0 text-sm text-white/60">{feature.detail}</CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <section id="workflow" className="space-y-8">
-        <div className="space-y-3">
-          <p className="text-sm uppercase tracking-[0.3em] text-white/60">Workflow</p>
-          <h2 className="text-3xl font-semibold text-white">四步搭建运营级监控体系</h2>
-          <p className="text-white/70">
-            全链路透明可追溯，可视化的流程帮助你快速拉齐团队共识。
-          </p>
-        </div>
-        <div className="space-y-4 sm:space-y-6">
-          {workflow.map((step, index) => (
-            <div
-              key={step.title}
-              className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-4 sm:p-6 lg:flex-row lg:items-center"
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-lg font-semibold text-white">
-                {index + 1}
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-xl font-medium text-white">{step.title}</h3>
-                <p className="text-white/70">{step.description}</p>
+                <h3 className="text-2xl font-bold mb-3">我们为您监控</h3>
+                <p className="text-muted-foreground">我们的系统持续监控价格变化。每天多次检查是否有任何变动。</p>
               </div>
             </div>
-          ))}
+
+            {/* Arrow */}
+            <div className="hidden md:flex items-center justify-center">
+              <div className="text-muted-foreground text-3xl">→</div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="relative">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-2xl mx-auto mb-6">
+                  3
+                </div>
+                <h3 className="text-2xl font-bold mb-3">您来省钱</h3>
+                <p className="text-muted-foreground">价格下降时获得即时通知。在最佳时机购买并节省金钱。</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section id="trust" className="grid gap-8 lg:grid-cols-[1.1fr,0.9fr]">
-        <div className="space-y-6 rounded-[32px] border border-white/10 bg-white/5 p-6 sm:p-8">
-          <p className="text-sm uppercase tracking-[0.3em] text-white/60">Trust & Security</p>
-          <h2 className="text-3xl font-semibold text-white">上线即可用的安全保障</h2>
-          <p className="text-white/70">
-            从账号安全到审计追溯，我们已经为你的首批真实用户打好地基。
-          </p>
-          <div className="space-y-5">
-            {trustPoints.map((point) => (
-              <div key={point.title} className="rounded-2xl bg-white/5 p-5">
-                <h3 className="text-lg font-medium text-white">{point.title}</h3>
-                <p className="mt-2 text-sm text-white/70">{point.description}</p>
+      {/* Benefits Section */}
+      <section id="benefits" className="py-20 px-4 sm:px-6 lg:px-8 bg-primary text-primary-foreground">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-4">为什么选择 UniTrack？</h2>
+            <p className="text-xl opacity-90 max-w-2xl mx-auto">加入成千上万位已经在省钱的聪明购物者</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <div className="flex gap-4">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary-foreground/20">✓</div>
               </div>
-            ))}
+              <div>
+                <h3 className="text-xl font-bold mb-2">节省时间</h3>
+                <p className="opacity-90">无需手动查看优衣库网站。让 UniTrack 为您自动完成。</p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary-foreground/20">✓</div>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-2">节省金钱</h3>
+                <p className="opacity-90">即时捕捉价格下降。平均用户每月可节省 500-2000 元。</p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary-foreground/20">✓</div>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-2">智能通知</h3>
+                <p className="opacity-90">可自定义的提醒。仅接收您关心的优惠信息。</p>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex-shrink-0">
+                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary-foreground/20">✓</div>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-2">完全免费</h3>
+                <p className="opacity-90">追踪无限数量的商品，完全免费。无隐藏费用或高级会员。</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 pt-12 border-t border-primary-foreground/20">
+            <div className="text-center">
+              <div className="text-4xl font-bold mb-2">50K+</div>
+              <p className="opacity-90 text-sm">活跃用户</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold mb-2">1M+</div>
+              <p className="opacity-90 text-sm">追踪商品</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold mb-2">¥1亿+</div>
+              <p className="opacity-90 text-sm">总省钱额</p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold mb-2">99.9%</div>
+              <p className="opacity-90 text-sm">正常运行率</p>
+            </div>
           </div>
         </div>
-        <Card className="glow-card rounded-[32px] border-white/10 bg-gradient-to-br from-indigo-500/20 via-slate-900 to-purple-600/10 p-6 text-white sm:p-8">
-          <CardHeader className="space-y-3 p-0">
-            <p className="text-sm uppercase tracking-[0.3em] text-white/70">客户心声</p>
-            <CardTitle className="text-2xl">“上线首周就省下了 40+ 小时人工巡检”</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6 p-0 pt-6 text-white/80">
-            <p>
-              依靠 Unitrack，我们把原本散落在 Excel 的监控逻辑收敛到一个平台。团队能清楚看到每一次价格变动的上下文，策略会讨论速度也快了很多。
-            </p>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl sm:text-5xl font-bold mb-6">准备好开始省钱了吗？</h2>
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            加入数千位聪明购物者。立即追踪您喜爱的优衣库商品，再也不错过任何优惠。
+          </p>
+          <Link href="/auth/signup">
+            <Button size="lg" className="gap-2">
+              免费开始
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-secondary/30 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <p className="text-base font-medium text-white">某潮流买手店 · 运营负责人</p>
-              <p className="text-sm text-white/60">Beta 计划首批合作伙伴</p>
+              <h4 className="font-bold mb-4">产品</h4>
+              <ul className="space-y-2 text-muted-foreground text-sm">
+                <li>
+                  <Link href="#" className="hover:text-foreground transition">
+                    功能特性
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-foreground transition">
+                    定价
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-foreground transition">
+                    工作原理
+                  </Link>
+                </li>
+              </ul>
             </div>
-          </CardContent>
-        </Card>
-      </section>
-
-      <section className="rounded-[32px] border border-white/10 bg-gradient-to-br from-slate-900 via-slate-900/70 to-slate-800/40 p-6 text-center sm:p-8 lg:p-10">
-        <p className="text-sm uppercase tracking-[0.3em] text-white/60">Ready to launch</p>
-        <h2 className="mt-4 text-3xl font-semibold text-white">
-          准备好让 UNIQLO 价格洞察变成团队标配了吗？
-        </h2>
-        <p className="mt-3 text-white/70">
-          立即创建账户，5 分钟内搭建你的第一条商品监控链路。
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-4">
-          <Button asChild className="h-12 rounded-full px-6 text-base">
-            <Link href="/auth/signup">开始免费试用</Link>
-          </Button>
-          <Button
-            variant="outline"
-            asChild
-            className="h-12 rounded-full border-white/40 px-6 text-base text-white hover:bg-white/10"
-          >
-            <Link href="/items/new">添加首个追踪</Link>
-          </Button>
+            <div>
+              <h4 className="font-bold mb-4">公司</h4>
+              <ul className="space-y-2 text-muted-foreground text-sm">
+                <li>
+                  <Link href="#" className="hover:text-foreground transition">
+                    关于我们
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-foreground transition">
+                    博客
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-foreground transition">
+                    联系我们
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">法律</h4>
+              <ul className="space-y-2 text-muted-foreground text-sm">
+                <li>
+                  <Link href="#" className="hover:text-foreground transition">
+                    隐私政策
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-foreground transition">
+                    服务条款
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-foreground transition">
+                    Cookie 政策
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">社交媒体</h4>
+              <ul className="space-y-2 text-muted-foreground text-sm">
+                <li>
+                  <Link href="#" className="hover:text-foreground transition">
+                    Twitter
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-foreground transition">
+                    GitHub
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-foreground transition">
+                    Discord
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-border pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <div className="flex items-center gap-2 mb-4 md:mb-0">
+                <div className="w-6 h-6 bg-primary rounded-lg flex items-center justify-center">
+                  <TrendingDown className="w-4 h-4 text-primary-foreground" />
+                </div>
+                <span className="font-bold">UniTrack</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                © 2025 UniTrack。保留所有权利。为热爱优惠的优衣库购物者打造。
+              </p>
+            </div>
+          </div>
         </div>
-      </section>
+      </footer>
     </div>
-  );
+  )
 }

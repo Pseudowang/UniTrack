@@ -1,43 +1,52 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 export function CrawlAllButton() {
-  const [pending, startTransition] = useTransition();
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleClick = () => {
-    setMessage(null);
-    setError(null);
+  const handleCrawlAll = async () => {
+    setIsLoading(true);
 
-    startTransition(async () => {
-      const response = await fetch("/api/crawl/all", { method: "POST" });
-      const json = await response.json().catch(() => null);
+    try {
+      const response = await fetch("/api/crawl/all", {
+        method: "POST",
+      });
+      const data = await response.json();
 
       if (!response.ok) {
-        setError(
-          (json as { error?: string } | null)?.error ?? "触发失败，请稍后再试"
-        );
+        toast({
+          title: "触发失败",
+          description: data?.error ?? "系统忙，请稍后再试",
+          variant: "destructive",
+        });
         return;
       }
 
-      if (json && typeof json === "object" && "created" in json) {
-        setMessage(`完成抓取：${json.created} 条更新，跳过 ${json.skipped} 条。`);
-      } else {
-        setMessage("抓取已完成");
-      }
-    });
+      toast({
+        title: "抓取完成",
+        description: `共处理 ${data.total} 条，生成 ${data.created} 条新快照，跳过 ${data.skipped} 条。`,
+      });
+      router.refresh();
+    } catch (error) {
+      toast({
+        title: "网络错误",
+        description: "无法触发抓取，请检查网络后重试",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="grid gap-2">
-      <Button onClick={handleClick} disabled={pending}>
-        {pending ? "抓取中..." : "手动触发全量抓取"}
-      </Button>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      {message ? <p className="text-sm text-emerald-600">{message}</p> : null}
-    </div>
+    <Button onClick={handleCrawlAll} disabled={isLoading} variant="secondary">
+      {isLoading ? "抓取中..." : "立即抓取"}
+    </Button>
   );
 }

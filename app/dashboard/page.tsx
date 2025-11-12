@@ -1,18 +1,20 @@
 import Image from "next/image";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { buildProductImageUrl } from "@/lib/product-code";
+import { AddItemForm } from "@/components/add-item-form";
+import { CrawlAllButton } from "@/components/crawl-all-button";
+import { DeleteTrackedItemButton } from "@/components/delete-tracked-item-button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CrawlAllButton } from "@/components/crawl-all-button";
-import { DeleteTrackedItemButton } from "@/components/delete-tracked-item-button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 function formatPrice(priceCent?: number | null) {
   if (priceCent === null || priceCent === undefined) {
@@ -21,17 +23,25 @@ function formatPrice(priceCent?: number | null) {
   return `¥ ${(priceCent / 100).toFixed(2)}`;
 }
 
+function formatDate(input?: Date | null) {
+  if (!input) {
+    return "尚未抓取";
+  }
+  return input.toLocaleString("zh-CN", { hour12: false });
+}
+
 export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) {
     redirect("/auth/signin");
   }
 
-  const userId = session.user.id;
+  const displayName =
+    session.user.name ?? session.user.email ?? "Unitrack 用户";
 
-  const [items, notifications] = await Promise.all([
+  const [trackedItems, notifications] = await Promise.all([
     prisma.trackedItem.findMany({
-      where: { userId },
+      where: { userId: session.user.id },
       orderBy: { createdAt: "desc" },
       include: {
         snapshots: {
@@ -41,7 +51,7 @@ export default async function DashboardPage() {
       },
     }),
     prisma.notification.findMany({
-      where: { userId },
+      where: { userId: session.user.id },
       orderBy: { changeEvent: { createdAt: "desc" } },
       take: 10,
       include: {
@@ -55,160 +65,193 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold sm:text-3xl">Dashboard</h1>
-        <p className="text-muted-foreground">
-          查看你的追踪商品、一键触发抓取，并了解最近的变更通知。
-        </p>
-      </div>
+    <main className="min-h-screen bg-background">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-10 md:px-8 lg:py-12">
+        <section className="space-y-2 text-center md:text-left">
+          <p className="inline-flex items-center rounded-full border border-border px-4 py-1 text-xs uppercase tracking-widest text-muted-foreground">
+            UniTrack Dashboard
+          </p>
+          <h1 className="text-3xl font-semibold md:text-4xl">
+            欢迎回来，{displayName}
+          </h1>
+          <p className="text-muted-foreground">
+            管理所有追踪商品、手动触发抓取，并快速了解最近的变化。
+          </p>
+        </section>
 
-      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <Card>
-          <CardHeader className="flex flex-col gap-2 space-y-0 sm:flex-row sm:items-center sm:justify-between">
+        <Card className="card-on-white">
+          <CardHeader className="gap-3">
             <div>
-              <CardTitle>追踪商品</CardTitle>
-              <CardDescription>当前登录用户的追踪列表。</CardDescription>
+              <CardTitle>添加新的追踪目标</CardTitle>
+              <CardDescription>
+                粘贴 UNIQLO 链接或 productCode / API ID，我们会自动补全数据。
+              </CardDescription>
             </div>
-            <Link
-              href="/items/new"
-              className="text-sm text-primary underline-offset-4 hover:underline"
-            >
-              添加
-            </Link>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {items.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                暂无数据，先去添加一个商品吧。
-              </p>
-            ) : (
-              <ul className="space-y-4">
-                {items.map((item) => {
-                  const latestSnapshot = item.snapshots[0];
-                  const fallbackImageUrl = buildProductImageUrl(item.productCode);
-                  const imageUrl = item.imageUrl ?? fallbackImageUrl;
-                  return (
-                    <li
-                      key={item.id}
-                      className="rounded-lg border p-4 shadow-sm transition hover:border-primary"
-                    >
-                      <div className="flex flex-col gap-4 md:flex-row">
-                        <div className="flex items-center justify-center md:block">
-                          <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-md border bg-muted/40">
-                            {imageUrl ? (
-                              <Image
-                                src={imageUrl}
-                                alt={item.title ?? `商品 ${item.productCode}`}
-                                width={112}
-                                height={112}
-                                unoptimized
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <span className="text-xs text-muted-foreground">
-                                暂无图片
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                          <div>
-                            <p className="text-sm font-medium">
-                              {item.title ?? `商品 ${item.productCode}`}
-                            </p>
-                            <p className="break-all text-xs text-muted-foreground">
-                              {item.url}
-                            </p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              商品 ID：{item.productCode}
-                            </p>
-                          </div>
-                          <div className="flex flex-col items-start gap-2 md:items-end">
-                            <div className="flex flex-col items-start gap-1 text-sm text-muted-foreground md:items-end">
-                              <span>
-                                现价：{formatPrice(latestSnapshot?.priceCent)}
-                              </span>
-                              <span>
-                                列表价：{formatPrice(
-                                  latestSnapshot?.listPriceCent
-                                )}
-                              </span>
-                              <span>
-                                库存：
-                                {latestSnapshot?.inStock === undefined
-                                  ? "未知"
-                                  : latestSnapshot?.inStock
-                                  ? "有货"
-                                  : "缺货"}
-                              </span>
-                            </div>
-                            <DeleteTrackedItemButton
-                              itemId={item.id}
-                              itemLabel={
-                                item.title ?? `商品 ${item.productCode}`
-                              }
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+          <CardContent>
+            <AddItemForm />
           </CardContent>
+          <CardFooter className="flex flex-col gap-4 border-t border-border/40 pt-6 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
+            <p>系统每隔数小时自动抓取。需要立即更新可手动触发。</p>
+            <CrawlAllButton />
+          </CardFooter>
         </Card>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>触发抓取</CardTitle>
-              <CardDescription>调用后端 /api/crawl/all 伪爬虫。</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CrawlAllButton />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>最近通知</CardTitle>
-              <CardDescription>展示最新的变更事件及状态。</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {notifications.length === 0 ? (
-                <p className="text-sm text-muted-foreground">暂无通知。</p>
-              ) : (
-                <ul className="space-y-4 text-sm">
-                  {notifications.map((notification) => (
-                    <li
-                      key={notification.id}
-                      className="rounded-md border p-3"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="font-medium text-foreground">
-                          {notification.changeEvent.trackedItem.title ??
-                            `商品 ${notification.changeEvent.trackedItem.productCode}`}
-                        </p>
-                        <span className="text-xs uppercase text-muted-foreground">
-                          {notification.status}
-                        </span>
+        <section className="space-y-4">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">
+                追踪清单（{trackedItems.length}）
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                实时展示最近一次抓取的价格、库存与状态。
+              </p>
+            </div>
+          </div>
+          {trackedItems.length === 0 ? (
+            <Alert className="card-on-white">
+              <AlertDescription>
+                还没有追踪任何商品。添加第一条 UNIQLO 链接开始体验吧。
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {trackedItems.map((item) => {
+                const snapshot = item.snapshots[0];
+                const imageUrl =
+                  item.imageUrl ?? buildProductImageUrl(item.productCode);
+                return (
+                  <Card key={item.id} className="card-on-white border-border/60">
+                    <CardHeader className="gap-4">
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-md border bg-muted/40">
+                          {imageUrl ? (
+                            <Image
+                              src={imageUrl}
+                              alt={item.title ?? item.productCode}
+                              width={64}
+                              height={64}
+                              unoptimized
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              暂无图片
+                            </span>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <CardTitle className="text-base font-semibold leading-tight">
+                            {item.title ?? `商品 ${item.productCode}`}
+                          </CardTitle>
+                          <p className="text-xs text-muted-foreground">
+                            #{item.productCode}
+                          </p>
+                          <p className="line-clamp-2 text-xs text-muted-foreground">
+                            {item.url}
+                          </p>
+                        </div>
                       </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-sm">
+                      <div className="grid grid-cols-2 gap-3 rounded-lg border border-border/60 bg-muted/20 p-3 text-center text-sm">
+                        <div>
+                          <p className="text-xs text-muted-foreground">现价</p>
+                          <p className="font-semibold text-foreground">
+                            {formatPrice(snapshot?.priceCent)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">
+                            列表价
+                          </p>
+                          <p className="font-semibold text-foreground">
+                            {formatPrice(snapshot?.listPriceCent)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">库存</p>
+                          <p className="font-semibold">
+                            {snapshot?.inStock === undefined
+                              ? "未知"
+                              : snapshot.inStock
+                              ? "有货"
+                              : "缺货"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">
+                            最近抓取
+                          </p>
+                          <p className="font-semibold">
+                            {formatDate(snapshot?.fetchedAt)}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex items-center justify-between border-t border-border/40 pt-4">
                       <p className="text-xs text-muted-foreground">
-                        类型：{notification.changeEvent.changeType}
+                        创建于 {formatDate(item.createdAt)}
                       </p>
-                      <pre className="mt-2 whitespace-pre-wrap rounded bg-muted p-2 text-xs text-muted-foreground">
-                        {JSON.stringify(notification.changeEvent.diff, null, 2)}
-                      </pre>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                      <DeleteTrackedItemButton
+                        itemId={item.id}
+                        itemLabel={item.title ?? `商品 ${item.productCode}`}
+                      />
+                    </CardFooter>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-4">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">最新通知</h2>
+              <p className="text-sm text-muted-foreground">
+                记录价格波动、库存变化以及任何抓取 diff。
+              </p>
+            </div>
+          </div>
+          {notifications.length === 0 ? (
+            <Alert className="card-on-white">
+              <AlertDescription>
+                暂无通知。完成首次抓取后会在此展示。
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="space-y-4">
+              {notifications.map((notification) => (
+                <Card
+                  key={notification.id}
+                  className="card-on-white border-border/60"
+                >
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      {notification.changeEvent.trackedItem.title ??
+                        `商品 ${notification.changeEvent.trackedItem.productCode}`}
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      {notification.status} ·{" "}
+                      {notification.changeEvent.changeType}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3 text-xs">
+                    <p className="text-muted-foreground">
+                      生成时间：{" "}
+                      {formatDate(notification.changeEvent.createdAt)}
+                    </p>
+                    <pre className="max-h-48 overflow-auto rounded-md bg-muted/40 p-3 text-xs">
+                      {JSON.stringify(notification.changeEvent.diff, null, 2)}
+                    </pre>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

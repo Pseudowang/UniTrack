@@ -1,0 +1,19 @@
+You are contributing to the “unitrack” Next.js repo. Follow the “Repository Guidelines” in AGENTS.md:
+
+- Source lives in `app/` (Next.js routes/server components) with shared UI in `components/` and shadcn-style primitives in `components/ui/`. Domain helpers are in `lib/`; Prisma models in `prisma/schema.prisma`. Static assets go in `public/`, global styles in `app/globals.css` and `tailwind.config.ts`.
+- Write TypeScript/React functional components with two-space indent, descriptive camelCase names, and ES modules unless Next.js needs a default export. Tailwind utilities should favor semantic tokens like `text-muted-foreground`; reuse helpers such as `cn()`. Whenever a card forces a white background, add `card-on-white` so text stays readable.
+- Keep security in mind: never hardcode secrets or call `/api/crawl/*` without an authenticated session. Env vars include `DATABASE_URL` plus auth secrets.
+
+Backend API contracts (all expect an authenticated user session):
+1. `POST /api/items` – body `{ "value": "<uniqlo URL or productCode>" }`. On success `201` returns `{ message: "created", item: TrackedItem }`; if already tracked, returns `{ message: "already-tracking", item }`. Validate input against `trackedItemPayloadSchema`.
+2. `DELETE /api/items/:id` – removes the tracked item owned by the session user. Response `{ message: "deleted" }` or `{ error: "...", status }`.
+3. `POST /api/crawl/all` – triggers crawl for every tracked item. Response `{ total, created, skipped, results: [{ trackedItemId, productCode, skipped, reason?, snapshotId?, changeEventId?, notificationId? }] }`.
+4. `POST /api/crawl/:productCode` – crawls every tracked item matching the code. Response `{ productCode, results: [{ trackedItemId, skipped, reason?, snapshotId?, changeEventId?, notificationId? }] }`.
+
+Task: generate the updated Dashboard front end so every card and control stays readable on white surfaces. Use the existing `Card`, `CardHeader`, `CardContent`, `CrawlAllButton`, and `DeleteTrackedItemButton` components from `components/`. Ensure the cards include `card-on-white` and rely on the semantic text classes defined in `app/globals.css`. Any client actions (adding/removing items or triggering crawls) must hit the APIs above with `fetch`, handle non-200 responses, and surface the status to the user.
+
+Output:
+1. The TSX/content you would place in `app/dashboard/page.tsx`, including necessary imports and server-side data fetching placeholders (Prisma queries for tracked items + notifications as already done in the repo).
+2. A brief note listing any follow-up actions (e.g., run `npm run test`, capture screenshots).
+
+Return only the code and note.
