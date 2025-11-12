@@ -1,12 +1,9 @@
 import { createHash } from "crypto";
 import type { Prisma } from "@prisma/client";
+import { buildProductImageUrl, isApiProductCode } from "./product-code";
 
-export const UNIQLO_SPU_API_BASE = "https://www.uniqlo.cn/data/products/spu/zh_CN";
-
-const PRODUCT_CODE_REGEX = /^[A-Za-z0-9_-]{3,}$/;
-const UNIQLO_HOSTS = new Set(["uniqlo.cn", "www.uniqlo.cn"]);
-const UNIQLO_SPU_PATH = "/data/products/spu/zh_CN/";
-const API_PRODUCT_CODE_REGEX = /^u\d+$/i;
+export const UNIQLO_SPU_API_BASE =
+  "https://www.uniqlo.cn/data/products/spu/zh_CN";
 
 export interface ProductSku {
   id: string;
@@ -86,54 +83,6 @@ interface UniqloSpuResponse {
   summary?: UniqloSpuSummary;
   rows?: UniqloSkuRow[];
   [key: string]: unknown;
-}
-
-export function parseProductCode(input: string): {
-  productCode: string;
-  isUrl: boolean;
-  kind: "detail" | "api" | "code";
-} {
-  const value = input.trim();
-  if (!value) {
-    throw new Error("Product code or URL is required");
-  }
-
-  if (/^https?:\/\//i.test(value)) {
-    const url = new URL(value);
-    if (![...UNIQLO_HOSTS].some((host) => url.hostname === host || url.hostname.endsWith(`.${host}`))) {
-      throw new Error("Only uniqlo.cn URLs are supported");
-    }
-
-    const apiCode = extractApiProductCode(url);
-    if (apiCode) {
-      return { productCode: apiCode, isUrl: true, kind: "api" };
-    }
-
-    const detailCode =
-      url.searchParams.get("productCode") ??
-      url.searchParams.get("code") ??
-      url.pathname
-        .split("/")
-        .map((segment) => segment.replace(".html", ""))
-        .find((segment) => PRODUCT_CODE_REGEX.test(segment));
-
-    if (!detailCode) {
-      throw new Error("Unable to extract product code from URL");
-    }
-
-    return { productCode: detailCode, isUrl: true, kind: "detail" };
-  }
-
-  const normalized = stripJsonSuffix(value);
-  if (!PRODUCT_CODE_REGEX.test(normalized)) {
-    throw new Error("Invalid product code format");
-  }
-
-  return {
-    productCode: normalized,
-    isUrl: false,
-    kind: isApiProductCode(normalized) ? "api" : "code",
-  };
 }
 
 export function computeEtag(payload: {
@@ -241,28 +190,21 @@ function mapSpuPayload(fallbackCode: string, payload: UniqloSpuResponse): Produc
   };
 }
 
-function pickSummaryImage(summary: UniqloSpuSummary | undefined, fallbackCode: string) {
+function pickSummaryImage(
+  summary: UniqloSpuSummary | undefined,
+  fallbackCode: string
+) {
   const candidates = [
     summary?.platformUrl,
     summary?.coverImageUrl,
     summary?.listImage,
+    buildProductImageUrl(summary?.productCode ?? fallbackCode),
+    summary?.code ? buildProductImageUrl(summary.code) : undefined,
   ]
     .map((value) => value?.trim())
     .filter((value): value is string => Boolean(value));
 
-  if (candidates.length > 0) {
-    return candidates[0];
-  }
-
-  if (summary?.code) {
-    return `https://www.uniqlo.cn/hmall/item/${summary.code}.jpg`;
-  }
-
-  if (isApiProductCode(fallbackCode)) {
-    return `https://www.uniqlo.cn/hmall/item/${fallbackCode}.jpg`;
-  }
-
-  return undefined;
+  return candidates[0];
 }
 
 function buildMockProduct(productCode: string): Product {
@@ -313,25 +255,6 @@ function buildMockBaseFromCode(productCode: string): MockProductBase {
   };
 }
 
-function extractApiProductCode(url: URL): string | null {
-  if (!url.pathname.startsWith(UNIQLO_SPU_PATH)) {
-    return null;
-  }
-
-  const segments = url.pathname.split("/").filter(Boolean);
-  const slug = segments[segments.length - 1];
-  if (!slug) {
-    return null;
-  }
-
-  const normalized = stripJsonSuffix(slug);
-  return PRODUCT_CODE_REGEX.test(normalized) ? normalized : null;
-}
-
-function stripJsonSuffix(value: string): string {
-  return value.replace(/\.json$/i, "");
-}
-
 function yuanToCent(value?: number | string | null): number | undefined {
   if (value === null || value === undefined || value === "") {
     return undefined;
@@ -354,10 +277,6 @@ function buildSkuLabel(row: UniqloSkuRow, index: number): string {
   }
 
   return style ?? size ?? `SKU ${index + 1}`;
-}
-
-function isApiProductCode(value: string): boolean {
-  return API_PRODUCT_CODE_REGEX.test(value);
 }
 
 function hashAsInt(value: string): number {

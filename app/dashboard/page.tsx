@@ -1,7 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { buildProductImageUrl } from "@/lib/product-code";
 import {
   Card,
   CardContent,
@@ -84,43 +86,70 @@ export default async function DashboardPage() {
               <ul className="space-y-4">
                 {items.map((item) => {
                   const latestSnapshot = item.snapshots[0];
+                  const fallbackImageUrl = buildProductImageUrl(item.productCode);
+                  const imageUrl = item.imageUrl ?? fallbackImageUrl;
                   return (
                     <li
                       key={item.id}
                       className="rounded-lg border p-4 shadow-sm transition hover:border-primary"
                     >
-                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                        <div>
-                          <p className="text-sm font-medium">
-                            {item.title ?? `商品 ${item.productCode}`}
-                          </p>
-                          <p className="break-all text-xs text-muted-foreground">
-                            {item.url}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-start gap-2 md:items-end">
-                          <div className="flex flex-col items-start gap-1 text-sm text-muted-foreground md:items-end">
-                            <span>
-                              现价：{formatPrice(latestSnapshot?.priceCent)}
-                            </span>
-                            <span>
-                              列表价：{formatPrice(
-                                latestSnapshot?.listPriceCent
-                              )}
-                            </span>
-                            <span>
-                              库存：
-                              {latestSnapshot?.inStock === undefined
-                                ? "未知"
-                                : latestSnapshot?.inStock
-                                ? "有货"
-                                : "缺货"}
-                            </span>
+                      <div className="flex flex-col gap-4 md:flex-row">
+                        <div className="flex items-center justify-center md:block">
+                          <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-md border bg-muted/40">
+                            {imageUrl ? (
+                              <Image
+                                src={imageUrl}
+                                alt={item.title ?? `商品 ${item.productCode}`}
+                                width={112}
+                                height={112}
+                                unoptimized
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                暂无图片
+                              </span>
+                            )}
                           </div>
-                          <DeleteTrackedItemButton
-                            itemId={item.id}
-                            itemLabel={item.title ?? `商品 ${item.productCode}`}
-                          />
+                        </div>
+                        <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                          <div>
+                            <p className="text-sm font-medium">
+                              {item.title ?? `商品 ${item.productCode}`}
+                            </p>
+                            <p className="break-all text-xs text-muted-foreground">
+                              {item.url}
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              商品 ID：{item.productCode}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-start gap-2 md:items-end">
+                            <div className="flex flex-col items-start gap-1 text-sm text-muted-foreground md:items-end">
+                              <span>
+                                现价：{formatPrice(latestSnapshot?.priceCent)}
+                              </span>
+                              <span>
+                                列表价：{formatPrice(
+                                  latestSnapshot?.listPriceCent
+                                )}
+                              </span>
+                              <span>
+                                库存：
+                                {latestSnapshot?.inStock === undefined
+                                  ? "未知"
+                                  : latestSnapshot?.inStock
+                                  ? "有货"
+                                  : "缺货"}
+                              </span>
+                            </div>
+                            <DeleteTrackedItemButton
+                              itemId={item.id}
+                              itemLabel={
+                                item.title ?? `商品 ${item.productCode}`
+                              }
+                            />
+                          </div>
                         </div>
                       </div>
                     </li>

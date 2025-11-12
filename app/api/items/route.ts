@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { trackedItemPayloadSchema } from "@/lib/validators";
-import { parseProductCode, UNIQLO_SPU_API_BASE } from "@/lib/scraper";
+import { parseProductCode } from "@/lib/product-code";
+import { UNIQLO_SPU_API_BASE } from "@/lib/scraper";
 import { auth } from "@/lib/auth";
 
 export async function POST(request: Request) {

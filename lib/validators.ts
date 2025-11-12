@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { parseProductCode } from "./scraper";
+import { parseProductCode } from "./product-code";
 
 export const trackedItemPayloadSchema = z.object({
   value: z
