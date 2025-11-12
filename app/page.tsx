@@ -5,37 +5,6 @@ import { ArrowRight, TrendingDown, Bell, BarChart3, Zap } from "lucide-react"
 export default function Home() {
   return (
     <div className="w-full bg-background">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-sm border-b border-border z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <TrendingDown className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-lg">UniTrack</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="#features" className="text-muted-foreground hover:text-foreground transition">
-              功能特性
-            </Link>
-            <Link href="#how-it-works" className="text-muted-foreground hover:text-foreground transition">
-              工作原理
-            </Link>
-            <Link href="#benefits" className="text-muted-foreground hover:text-foreground transition">
-              产品优势
-            </Link>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/auth/signin">
-              <Button variant="ghost">登录</Button>
-            </Link>
-            <Link href="/auth/signup">
-              <Button>开始使用</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center space-y-6 mb-12">
