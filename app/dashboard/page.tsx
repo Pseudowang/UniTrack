@@ -115,83 +115,102 @@ export default async function DashboardPage() {
               </AlertDescription>
             </Alert>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {trackedItems.map((item) => {
                 const snapshot = item.snapshots[0];
                 const imageUrl =
                   item.imageUrl ?? buildProductImageUrl(item.productCode);
+                const showListPrice =
+                  snapshot?.listPriceCent != null &&
+                  snapshot.listPriceCent !== snapshot?.priceCent;
                 return (
-                  <Card key={item.id} className="card-on-white border-border/60">
-                    <CardHeader className="gap-4">
-                      <div className="flex items-start gap-4">
-                        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-md border bg-muted/40">
-                          {imageUrl ? (
-                            <Image
-                              src={imageUrl}
-                              alt={item.title ?? item.productCode}
-                              width={64}
-                              height={64}
-                              unoptimized
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              暂无图片
-                            </span>
-                          )}
-                        </div>
-                        <div className="space-y-1">
-                          <CardTitle className="text-base font-semibold leading-tight">
-                            {item.title ?? `商品 ${item.productCode}`}
-                          </CardTitle>
-                          <p className="text-xs text-muted-foreground">
-                            #{item.productCode}
-                          </p>
-                          <p className="line-clamp-2 text-xs text-muted-foreground">
-                            {item.url}
-                          </p>
-                        </div>
+                  <Card
+                    key={item.id}
+                    className="card-on-white flex h-full flex-col overflow-hidden border-border/60"
+                  >
+                    <CardHeader className="flex flex-col gap-0 p-0">
+                      <div className="relative aspect-[4/5] w-full overflow-hidden bg-white">
+                        {imageUrl ? (
+                          <Image
+                            src={imageUrl}
+                            alt={item.title ?? item.productCode}
+                            fill
+                            sizes="(min-width: 1280px) 320px, (min-width: 768px) 45vw, 90vw"
+                            unoptimized
+                            className="object-contain p-6"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center rounded-lg border border-dashed border-border/60 p-6 text-xs text-muted-foreground">
+                            暂无图片
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2 border-t border-border/60 px-6 py-4">
+                        <CardTitle className="text-base font-semibold leading-snug">
+                          {item.title ?? `商品 ${item.productCode}`}
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground">
+                          #{item.productCode}
+                        </p>
+                        <p className="line-clamp-2 text-xs text-muted-foreground">
+                          {item.url}
+                        </p>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-3 text-sm">
-                      <div className="grid grid-cols-2 gap-3 rounded-lg border border-border/60 bg-muted/20 p-3 text-center text-sm">
-                        <div>
-                          <p className="text-xs text-muted-foreground">现价</p>
-                          <p className="font-semibold text-foreground">
+                    <CardContent className="flex flex-col gap-4 px-6 pb-6 pt-2 text-sm">
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">
+                          当前价格
+                        </p>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-semibold text-foreground">
                             {formatPrice(snapshot?.priceCent)}
-                          </p>
+                          </span>
+                          {showListPrice ? (
+                            <span className="text-sm text-muted-foreground line-through">
+                              {formatPrice(snapshot?.listPriceCent)}
+                            </span>
+                          ) : null}
                         </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">
-                            列表价
-                          </p>
-                          <p className="font-semibold text-foreground">
-                            {formatPrice(snapshot?.listPriceCent)}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">库存</p>
-                          <p className="font-semibold">
-                            {snapshot?.inStock === undefined
-                              ? "未知"
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        <span
+                          className={`rounded-full border px-3 py-1 ${
+                            snapshot?.inStock === undefined
+                              ? "border-border/60 text-muted-foreground"
                               : snapshot.inStock
-                              ? "有货"
-                              : "缺货"}
+                              ? "border-green-500/40 text-green-600"
+                              : "border-destructive/40 text-destructive"
+                          }`}
+                        >
+                          {snapshot?.inStock === undefined
+                            ? "库存未知"
+                            : snapshot.inStock
+                            ? "有货"
+                            : "缺货"}
+                        </span>
+                        <span className="rounded-full border border-border/60 px-3 py-1 text-muted-foreground">
+                          最近抓取 {formatDate(snapshot?.fetchedAt)}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
+                          <p className="text-muted-foreground">追踪创建</p>
+                          <p className="text-sm font-semibold text-foreground">
+                            {formatDate(item.createdAt)}
                           </p>
                         </div>
-                        <div>
-                          <p className="text-xs text-muted-foreground">
-                            最近抓取
-                          </p>
-                          <p className="font-semibold">
+                        <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
+                          <p className="text-muted-foreground">最近同步</p>
+                          <p className="text-sm font-semibold text-foreground">
                             {formatDate(snapshot?.fetchedAt)}
                           </p>
                         </div>
                       </div>
                     </CardContent>
-                    <CardFooter className="flex items-center justify-between border-t border-border/40 pt-4">
+                    <CardFooter className="mt-auto flex items-center justify-between border-t border-border/40 px-6 py-4">
                       <p className="text-xs text-muted-foreground">
-                        创建于 {formatDate(item.createdAt)}
+                        如需移除可使用右侧操作
                       </p>
                       <DeleteTrackedItemButton
                         itemId={item.id}

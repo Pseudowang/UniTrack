@@ -2,8 +2,7 @@ import { createHash } from "crypto";
 import type { Prisma } from "@prisma/client";
 import { buildProductImageUrl, isApiProductCode } from "./product-code";
 
-export const UNIQLO_SPU_API_BASE =
-  "https://www.uniqlo.cn/data/products/spu/zh_CN";
+export const UNIQLO_SPU_API_BASE = "";
 
 export interface ProductSku {
   id: string;
@@ -35,9 +34,24 @@ const MOCK_PRODUCTS: Record<string, MockProductBase> = {
     imageUrl:
       "https://www.uniqlo.cn/hmall/test/airism-cotton-oversized-tees.jpg",
     skus: [
-      { id: "465167-BLACK-M", label: "Black / M", inStock: true, priceCent: 9900 },
-      { id: "465167-WHITE-L", label: "White / L", inStock: true, priceCent: 9900 },
-      { id: "465167-NAVY-XL", label: "Navy / XL", inStock: false, priceCent: 9900 },
+      {
+        id: "465167-BLACK-M",
+        label: "Black / M",
+        inStock: true,
+        priceCent: 9900,
+      },
+      {
+        id: "465167-WHITE-L",
+        label: "White / L",
+        inStock: true,
+        priceCent: 9900,
+      },
+      {
+        id: "465167-NAVY-XL",
+        label: "Navy / XL",
+        inStock: false,
+        priceCent: 9900,
+      },
     ],
   },
   "465168": {
@@ -45,12 +59,26 @@ const MOCK_PRODUCTS: Record<string, MockProductBase> = {
     priceCent: 59900,
     listPriceCent: 79900,
     inStock: true,
-    imageUrl:
-      "https://www.uniqlo.cn/hmall/test/ultra-light-down-jacket.jpg",
+    imageUrl: "https://www.uniqlo.cn/hmall/test/ultra-light-down-jacket.jpg",
     skus: [
-      { id: "465168-GREY-M", label: "Grey / M", inStock: true, priceCent: 59900 },
-      { id: "465168-GREY-L", label: "Grey / L", inStock: true, priceCent: 59900 },
-      { id: "465168-NAVY-S", label: "Navy / S", inStock: false, priceCent: 59900 },
+      {
+        id: "465168-GREY-M",
+        label: "Grey / M",
+        inStock: true,
+        priceCent: 59900,
+      },
+      {
+        id: "465168-GREY-L",
+        label: "Grey / L",
+        inStock: true,
+        priceCent: 59900,
+      },
+      {
+        id: "465168-NAVY-S",
+        label: "Navy / S",
+        inStock: false,
+        priceCent: 59900,
+      },
     ],
   },
 };
@@ -107,7 +135,10 @@ export async function fetchProduct(productCode: string): Promise<Product> {
       return await fetchUniqloSpuProduct(productCode);
     } catch (error) {
       if (process.env.NODE_ENV !== "production") {
-        console.warn(`[scraper] failed to fetch ${productCode} from uniqlo.cn`, error);
+        console.warn(
+          `[scraper] failed to fetch ${productCode} from uniqlo.cn`,
+          error
+        );
       }
     }
   }
@@ -136,7 +167,10 @@ async function fetchUniqloSpuProduct(productCode: string): Promise<Product> {
   return mapSpuPayload(productCode, payload);
 }
 
-function mapSpuPayload(fallbackCode: string, payload: UniqloSpuResponse): Product {
+function mapSpuPayload(
+  fallbackCode: string,
+  payload: UniqloSpuResponse
+): Product {
   const summary = payload.summary ?? {};
   const rows = Array.isArray(payload.rows) ? payload.rows : [];
 
@@ -156,7 +190,9 @@ function mapSpuPayload(fallbackCode: string, payload: UniqloSpuResponse): Produc
   });
 
   const listPriceCent =
-    yuanToCent(summary.originPrice) ?? yuanToCent(summary.maxVaryPrice) ?? undefined;
+    yuanToCent(summary.originPrice) ??
+    yuanToCent(summary.maxVaryPrice) ??
+    undefined;
 
   const priceCent =
     (skuPrices.length ? Math.min(...skuPrices) : undefined) ??
@@ -194,13 +230,24 @@ function pickSummaryImage(
   summary: UniqloSpuSummary | undefined,
   fallbackCode: string
 ) {
-  const candidates = [
+  const primaryCode = summary?.productCode ?? summary?.code ?? fallbackCode;
+  const canonicalImage = buildProductImageUrl(primaryCode);
+  const secondaryImage =
+    summary?.code && summary.code !== primaryCode
+      ? buildProductImageUrl(summary.code)
+      : undefined;
+
+  const baseCandidates = [
     summary?.platformUrl,
     summary?.coverImageUrl,
     summary?.listImage,
-    buildProductImageUrl(summary?.productCode ?? fallbackCode),
-    summary?.code ? buildProductImageUrl(summary.code) : undefined,
-  ]
+  ];
+
+  const candidates = (
+    primaryCode && isApiProductCode(primaryCode)
+      ? [canonicalImage, ...baseCandidates, secondaryImage]
+      : [...baseCandidates, canonicalImage, secondaryImage]
+  )
     .map((value) => value?.trim())
     .filter((value): value is string => Boolean(value));
 
@@ -236,7 +283,7 @@ function buildMockProduct(productCode: string): Product {
 }
 
 function buildMockBaseFromCode(productCode: string): MockProductBase {
-  const fallbackPrice = Math.abs(hashAsInt(productCode)) % 80000 + 9900;
+  const fallbackPrice = (Math.abs(hashAsInt(productCode)) % 80000) + 9900;
 
   return {
     title: `UNIQLO Product ${productCode}`,

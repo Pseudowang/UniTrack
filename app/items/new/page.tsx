@@ -32,7 +32,9 @@ export default async function NewItemPage() {
         <p className="font-medium text-foreground">支持的输入示例：</p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>https://www.uniqlo.cn/product-detail.html?productCode=465167</li>
-          <li>https://www.uniqlo.cn/data/products/spu/zh_CN/u0000000065241.json</li>
+          <li>
+            https://www.uniqlo.cn/data/products/spu/zh_CN/u0000000065241.json
+          </li>
           <li>u0000000065241</li>
           <li>465167</li>
         </ul>

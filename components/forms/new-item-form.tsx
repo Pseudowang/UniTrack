@@ -89,7 +89,7 @@ export function NewItemForm() {
         <Label htmlFor="value">UNIQLO 链接或 productCode / API ID</Label>
         <Input
           id="value"
-          placeholder="https://www.uniqlo.cn/data/products/spu/zh_CN/u0000000065241.json"
+          placeholder="/u0000000065241.json"
           value={value}
           onChange={handleChange}
           required
