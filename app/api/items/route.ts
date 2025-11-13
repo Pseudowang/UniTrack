@@ -44,8 +44,9 @@ export async function POST(request: Request) {
   const normalizedUrl = isUrl
     ? parsed.data.value.trim()
     : kind === "api"
-      ? `${UNIQLO_SPU_API_BASE}/${productCode.toLowerCase()}.json`
-      : `https://www.uniqlo.cn/product-detail.html?productCode=${productCode}`;
+    ? `${UNIQLO_SPU_API_BASE}/${productCode.toLowerCase()}.json`
+    : // : `https://www.uniqlo.cn/product-detail.html?productCode=${productCode}`;
+      `https://www.uniqlo.cn/data/products/spu/zh_CN/${productCode}`;
 
   const existing = await prisma.trackedItem.findUnique({
     where: {

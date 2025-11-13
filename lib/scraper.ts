@@ -2,7 +2,8 @@ import { createHash } from "crypto";
 import type { Prisma } from "@prisma/client";
 import { buildProductImageUrl, isApiProductCode } from "./product-code";
 
-export const UNIQLO_SPU_API_BASE = "";
+export const UNIQLO_SPU_API_BASE =
+  "https://www.uniqlo.cn/data/products/spu/zh_CN/";
 
 export interface ProductSku {
   id: string;

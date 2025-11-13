@@ -1,6 +1,6 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, TrendingDown, Bell, BarChart3, Zap } from "lucide-react"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, TrendingDown, Bell, BarChart3, Zap } from "lucide-react";
 
 export default function Home() {
   return (
@@ -21,7 +21,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Link href="/auth/signup">
-              <Button size="lg" className="gap-2">
+              <Button size="lg" className="gap-2 cursor-pointer">
                 立即开始追踪
                 <ArrowRight className="w-4 h-4" />
               </Button>
@@ -46,11 +46,18 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-secondary/30 border-y border-border">
+      <section
+        id="features"
+        className="py-20 px-4 sm:px-6 lg:px-8 bg-secondary/30 border-y border-border"
+      >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold mb-4">为您设计的强大功能</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">追踪优衣库价格和不错过优惠所需的一切</p>
+            <h2 className="text-4xl sm:text-5xl font-bold mb-4">
+              为您设计的强大功能
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              追踪优衣库价格和不错过优惠所需的一切
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -71,7 +78,9 @@ export default function Home() {
                 <Bell className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-bold mb-3">即时通知提醒</h3>
-              <p className="text-muted-foreground">价格下降的那一刻就收到提醒。再也不会错过任何好交易。</p>
+              <p className="text-muted-foreground">
+                价格下降的那一刻就收到提醒。再也不会错过任何好交易。
+              </p>
             </div>
 
             {/* Feature 3 */}
@@ -80,7 +89,9 @@ export default function Home() {
                 <BarChart3 className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-bold mb-3">价格历史分析</h3>
-              <p className="text-muted-foreground">查看详细的价格趋势和历史记录。根据数据洞察做出明智的购物决策。</p>
+              <p className="text-muted-foreground">
+                查看详细的价格趋势和历史记录。根据数据洞察做出明智的购物决策。
+              </p>
             </div>
 
             {/* Feature 4 */}
@@ -89,7 +100,9 @@ export default function Home() {
                 <Zap className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-bold mb-3">智能收藏清单</h3>
-              <p className="text-muted-foreground">构建您的个人商品清单。同时追踪多件商品，无限制添加。</p>
+              <p className="text-muted-foreground">
+                构建您的个人商品清单。同时追踪多件商品，无限制添加。
+              </p>
             </div>
 
             {/* Feature 5 */}
@@ -98,7 +111,9 @@ export default function Home() {
                 <TrendingDown className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-bold mb-3">价格下降提醒</h3>
-              <p className="text-muted-foreground">设置自定义价格阈值。当商品达到您的目标价格时获得提醒。</p>
+              <p className="text-muted-foreground">
+                设置自定义价格阈值。当商品达到您的目标价格时获得提醒。
+              </p>
             </div>
 
             {/* Feature 6 */}
@@ -107,7 +122,9 @@ export default function Home() {
                 <BarChart3 className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-bold mb-3">省钱仪表板</h3>
-              <p className="text-muted-foreground">追踪您的总省钱额。查看通过价格提醒和优惠节省的金额。</p>
+              <p className="text-muted-foreground">
+                追踪您的总省钱额。查看通过价格提醒和优惠节省的金额。
+              </p>
             </div>
           </div>
         </div>
@@ -118,7 +135,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold mb-4">工作原理</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">三个简单步骤开始使用</p>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              三个简单步骤开始使用
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -129,7 +148,9 @@ export default function Home() {
                   1
                 </div>
                 <h3 className="text-2xl font-bold mb-3">添加商品</h3>
-                <p className="text-muted-foreground">粘贴优衣库商品链接或商品编码。UniTrack 立即开始监控价格变化。</p>
+                <p className="text-muted-foreground">
+                  粘贴优衣库商品链接或商品编码。UniTrack 立即开始监控价格变化。
+                </p>
               </div>
             </div>
 
@@ -145,7 +166,9 @@ export default function Home() {
                   2
                 </div>
                 <h3 className="text-2xl font-bold mb-3">我们为您监控</h3>
-                <p className="text-muted-foreground">我们的系统持续监控价格变化。每天多次检查是否有任何变动。</p>
+                <p className="text-muted-foreground">
+                  我们的系统持续监控价格变化。每天多次检查是否有任何变动。
+                </p>
               </div>
             </div>
 
@@ -161,7 +184,9 @@ export default function Home() {
                   3
                 </div>
                 <h3 className="text-2xl font-bold mb-3">您来省钱</h3>
-                <p className="text-muted-foreground">价格下降时获得即时通知。在最佳时机购买并节省金钱。</p>
+                <p className="text-muted-foreground">
+                  价格下降时获得即时通知。在最佳时机购买并节省金钱。
+                </p>
               </div>
             </div>
           </div>
@@ -169,51 +194,74 @@ export default function Home() {
       </section>
 
       {/* Benefits Section */}
-      <section id="benefits" className="py-20 px-4 sm:px-6 lg:px-8 bg-primary text-primary-foreground">
+      <section
+        id="benefits"
+        className="py-20 px-4 sm:px-6 lg:px-8 bg-primary text-primary-foreground"
+      >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold mb-4">为什么选择 UniTrack？</h2>
-            <p className="text-xl opacity-90 max-w-2xl mx-auto">加入成千上万位已经在省钱的聪明购物者</p>
+            <h2 className="text-4xl sm:text-5xl font-bold mb-4">
+              为什么选择 UniTrack？
+            </h2>
+            <p className="text-xl opacity-90 max-w-2xl mx-auto">
+              加入成千上万位已经在省钱的聪明购物者
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary-foreground/20">✓</div>
+                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary-foreground/20">
+                  ✓
+                </div>
               </div>
               <div>
                 <h3 className="text-xl font-bold mb-2">节省时间</h3>
-                <p className="opacity-90">无需手动查看优衣库网站。让 UniTrack 为您自动完成。</p>
+                <p className="opacity-90">
+                  无需手动查看优衣库网站。让 UniTrack 为您自动完成。
+                </p>
               </div>
             </div>
 
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary-foreground/20">✓</div>
+                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary-foreground/20">
+                  ✓
+                </div>
               </div>
               <div>
                 <h3 className="text-xl font-bold mb-2">节省金钱</h3>
-                <p className="opacity-90">即时捕捉价格下降。平均用户每月可节省 500-2000 元。</p>
+                <p className="opacity-90">
+                  即时捕捉价格下降。平均用户每月可节省 500-2000 元。
+                </p>
               </div>
             </div>
 
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary-foreground/20">✓</div>
+                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary-foreground/20">
+                  ✓
+                </div>
               </div>
               <div>
                 <h3 className="text-xl font-bold mb-2">智能通知</h3>
-                <p className="opacity-90">可自定义的提醒。仅接收您关心的优惠信息。</p>
+                <p className="opacity-90">
+                  可自定义的提醒。仅接收您关心的优惠信息。
+                </p>
               </div>
             </div>
 
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary-foreground/20">✓</div>
+                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary-foreground/20">
+                  ✓
+                </div>
               </div>
               <div>
                 <h3 className="text-xl font-bold mb-2">完全免费</h3>
-                <p className="opacity-90">追踪无限数量的商品，完全免费。无隐藏费用或高级会员。</p>
+                <p className="opacity-90">
+                  追踪无限数量的商品，完全免费。无隐藏费用或高级会员。
+                </p>
               </div>
             </div>
           </div>
@@ -243,7 +291,9 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl sm:text-5xl font-bold mb-6">准备好开始省钱了吗？</h2>
+          <h2 className="text-4xl sm:text-5xl font-bold mb-6">
+            准备好开始省钱了吗？
+          </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             加入数千位聪明购物者。立即追踪您喜爱的优衣库商品，再也不错过任何优惠。
           </p>
@@ -357,5 +407,5 @@ export default function Home() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

@@ -1,8 +1,9 @@
-import type {
-  ChangeEvent,
-  Notification,
-  ProductSnapshot,
-  TrackedItem,
+import {
+  Prisma,
+  type ChangeEvent,
+  type Notification,
+  type ProductSnapshot,
+  type TrackedItem,
 } from "@prisma/client";
 import prisma from "./db";
 import { fetchProduct } from "./scraper";
@@ -25,6 +26,13 @@ async function getLatestSnapshot(trackedItemId: string) {
   });
 }
 
+function isUniqueConstraintError(error: unknown) {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002"
+  );
+}
+
 export async function crawlTrackedItem(
   trackedItem: TrackedItem
 ): Promise<CrawlResult> {
@@ -39,17 +47,47 @@ export async function crawlTrackedItem(
     };
   }
 
-  const snapshot = await prisma.productSnapshot.create({
-    data: {
-      trackedItemId: trackedItem.id,
-      title: product.title,
-      priceCent: product.priceCent,
-      listPriceCent: product.listPriceCent,
-      inStock: product.inStock,
-      rawJson: product.raw,
-      etag: product.etag,
-    },
-  });
+  let snapshot: ProductSnapshot | undefined;
+
+  try {
+    snapshot = await prisma.productSnapshot.create({
+      data: {
+        trackedItemId: trackedItem.id,
+        title: product.title,
+        priceCent: product.priceCent,
+        listPriceCent: product.listPriceCent,
+        inStock: product.inStock,
+        rawJson: product.raw,
+        etag: product.etag,
+      },
+    });
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      const existingSnapshot = await prisma.productSnapshot.findUnique({
+        where: {
+          trackedItemId_etag: {
+            trackedItemId: trackedItem.id,
+            etag: product.etag,
+          },
+        },
+      });
+
+      if (existingSnapshot) {
+        return {
+          trackedItem,
+          snapshot: existingSnapshot,
+          skipped: true,
+          reason: "etag-duplicate",
+        };
+      }
+    }
+
+    throw error;
+  }
+
+  if (!snapshot) {
+    throw new Error("Failed to create product snapshot");
+  }
 
   await prisma.trackedItem.update({
     where: { id: trackedItem.id },
