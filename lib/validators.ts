@@ -1,12 +1,16 @@
+
+// TypeScript 模式声明和验证库(Schema Validation Library)
 import { z } from "zod";
+
+// 解析出 productCode 的工具函数
 import { parseProductCode } from "./product-code";
 
 export const trackedItemPayloadSchema = z.object({
   value: z
-    .string()
-    .trim()
-    .min(1, "请输入商品链接或 productCode")
-    .refine((val) => {
+    .string() //必须是字符串
+    .trim() // 去除首尾空格
+    .min(1, "请输入商品链接或 productCode") // 最小长度
+    .refine ((val) => {   
       try {
         parseProductCode(val);
         return true;

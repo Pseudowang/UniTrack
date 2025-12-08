@@ -129,7 +129,7 @@ export default async function DashboardPage() {
                 return (
                   <Card
                     key={item.id}
-                    className="card-on-white group flex h-[740px] flex-col overflow-hidden border-border/60 transition-all hover:shadow-md"
+                    className="card-on-white group flex mt-4 h-[740px] flex-col overflow-hidden border-border/60 transition-all hover:shadow-md"
                   >
                     <CardHeader className="p-0">
                       <div className="relative aspect-[4/5] w-full overflow-hidden bg-white">
