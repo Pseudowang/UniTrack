@@ -47,10 +47,10 @@ export async function SiteNav() {
           ) : (
             <>
               <Link href="/auth/signin">
-                <Button variant="ghost" className="cursor-pointer">登录</Button>
+                <Button variant="ghost">登录</Button>
               </Link>
               <Link href="/auth/signup">
-                <Button className="cursor-pointer">开始使用</Button>
+                <Button>开始使用</Button>
               </Link>
             </>
           )}

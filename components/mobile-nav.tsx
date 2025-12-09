@@ -22,8 +22,8 @@ export function MobileNav({ marketingNav, isAuthenticated }: MobileNavProps) {
   const triggerBaseClasses =
     "inline-flex h-10 w-10 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050713]";
   const triggerButtonClasses = isOpen
-    ? `${triggerBaseClasses} border-transparent bg-white text-[#050713] hover:bg-white/90`
-    : `${triggerBaseClasses} border-white/30 bg-white/5 text-white hover:border-white/60 hover:bg-white/10`;
+    ? `${triggerBaseClasses} cursor-pointer border-transparent bg-white text-[#050713] hover:bg-white/90`
+    : `${triggerBaseClasses} cursor-pointer border-white/30 bg-white/5 text-white hover:border-white/60 hover:bg-white/10`;
 
   useEffect(() => {
     if (!isOpen) {
@@ -65,7 +65,7 @@ export function MobileNav({ marketingNav, isAuthenticated }: MobileNavProps) {
                 type="button"
                 aria-label="关闭导航菜单"
                 onClick={closeMenu}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 text-white transition hover:border-white/40"
+                className="cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 text-white transition hover:border-white/40"
               >
                 <CloseIcon />
               </button>
