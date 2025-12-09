@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingDown, Bell, BarChart3, Zap } from "lucide-react";
+import { PriceTrendHero } from "@/components/hero/price-trend-hero";
 
 export default function Home() {
   return (
@@ -35,14 +36,7 @@ export default function Home() {
         </div>
 
         {/* Hero Image */}
-        <div className="relative h-96 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl border border-border overflow-hidden flex items-center justify-center">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-full mb-4 mx-auto">
-              <BarChart3 className="w-10 h-10 text-primary-foreground" />
-            </div>
-            <p className="text-muted-foreground">智能价格追踪仪表板预览</p>
-          </div>
-        </div>
+        <PriceTrendHero />
       </section>
 
       {/* Features Section */}
