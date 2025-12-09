@@ -3,6 +3,7 @@ import { TrendingDown } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "@/components/sign-out-button";
+import { SubscriptionPopover } from "@/components/subscription-popover";
 
 const marketingLinks = [
   { id: "features", href: "/#features", label: "功能特性" },
@@ -12,6 +13,7 @@ const marketingLinks = [
 
 export async function SiteNav() {
   const session = await auth();
+  // Check if user is authenticated
   const isAuthenticated = Boolean(session?.user?.id);
 
   return (
@@ -39,6 +41,7 @@ export async function SiteNav() {
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
             <>
+              <SubscriptionPopover />
               <Link href="/dashboard">
                 <Button variant="ghost">控制台</Button>
               </Link>
