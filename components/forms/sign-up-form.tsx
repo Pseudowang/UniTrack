@@ -104,7 +104,7 @@ export function SignUpForm() {
         />
       </div>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending} className="cursor-pointer">
         {pending ? "注册中..." : "注册"}
       </Button>
     </form>

@@ -71,7 +71,7 @@ export function SignInForm() {
         />
       </div>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending} className="cursor-pointer">
         {pending ? "登录中..." : "登录"}
       </Button>
     </form>
