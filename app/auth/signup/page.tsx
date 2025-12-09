@@ -21,7 +21,7 @@ export default async function SignUpPage() {
       <Card>
         <CardHeader>
           <CardTitle>注册</CardTitle>
-          <CardDescription>创建演示账号以体验商品追踪功能。</CardDescription>
+          <CardDescription>创建账号以体验商品追踪功能。</CardDescription>
         </CardHeader>
         <CardContent>
           <SignUpForm />

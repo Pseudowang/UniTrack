@@ -21,7 +21,7 @@ export default async function SignInPage() {
       <Card>
         <CardHeader>
           <CardTitle>登录</CardTitle>
-          <CardDescription>使用邮箱与密码登录 Unitrack 演示。</CardDescription>
+          <CardDescription>使用邮箱与密码登录 Unitrack</CardDescription>
         </CardHeader>
         <CardContent>
           <SignInForm />

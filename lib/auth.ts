@@ -10,6 +10,7 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
+  // 当未登录用户试图访问需要登录的页面时，重定向到登录页面
   pages: {
     signIn: "/auth/signin",
   },

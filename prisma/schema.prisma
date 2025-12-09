@@ -16,6 +16,7 @@ model User {
   notifications  Notification[]
 }
 
+// 用户关注的商品
 model TrackedItem {
   id            String           @id @default(cuid())
   userId        String
@@ -33,6 +34,7 @@ model TrackedItem {
   @@index([productCode])
 }
 
+// 商品快照
 model ProductSnapshot {
   id             String         @id @default(cuid())
   trackedItemId  String
@@ -50,6 +52,7 @@ model ProductSnapshot {
   @@unique([trackedItemId, etag])
 }
 
+// 商品变化事件
 model ChangeEvent {
   id            String         @id @default(cuid())
   trackedItemId String
@@ -64,6 +67,7 @@ model ChangeEvent {
   @@index([trackedItemId, createdAt])
 }
 
+// 通知
 model Notification {
   id            String        @id @default(cuid())
   userId        String
