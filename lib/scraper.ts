@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { buildProductImageUrl, isApiProductCode } from "./product-code";
 
 export const UNIQLO_SPU_API_BASE =
-  "https://www.uniqlo.cn/data/products/spu/zh_CN/";
+  "https://www.uniqlo.cn/data/products/prodInfo/zh_CN/";
 
 export interface ProductSku {
   id: string;
@@ -84,33 +84,27 @@ const MOCK_PRODUCTS: Record<string, MockProductBase> = {
   },
 };
 
-interface UniqloSpuSummary {
-  fullName?: string;
+interface UniqloProdInfo {
+  originPrice?: number | string;
+  minPrice?: number | string;
+  maxPrice?: number | string;
+  score?: string;
+  inactive?: string; // "N"
+  maxVaryPrice?: string;
+  minSize?: string;
+  stock?: string; // "Y"
+  hasStock?: string; // "Y"
+  gDeptValue?: string;
+  priceColor?: string;
+  evaluationCount?: string;
   name?: string;
   code?: string;
+  maxSize?: string;
+  enabledFlag?: string; // "Y"
+  sex?: string;
+  fullName?: string;
+  minVaryPrice?: string;
   productCode?: string;
-  minVaryPrice?: number | string;
-  maxVaryPrice?: number | string;
-  originPrice?: number | string;
-  platformUrl?: string;
-  coverImageUrl?: string;
-  listImage?: string;
-}
-
-interface UniqloSkuRow {
-  productId?: string;
-  omsSkuCode?: string;
-  styleText?: string;
-  style?: string;
-  sizeText?: string;
-  size?: string;
-  enabledFlag?: string;
-  varyPrice?: number | string;
-}
-
-interface UniqloSpuResponse {
-  summary?: UniqloSpuSummary;
-  rows?: UniqloSkuRow[];
   [key: string]: unknown;
 }
 
@@ -164,48 +158,30 @@ async function fetchUniqloSpuProduct(productCode: string): Promise<Product> {
     throw new Error(`Uniqlo API request failed with status ${response.status}`);
   }
 
-  const payload = (await response.json()) as UniqloSpuResponse;
+  const payload = (await response.json()) as UniqloProdInfo;
   return mapSpuPayload(productCode, payload);
 }
 
 function mapSpuPayload(
   fallbackCode: string,
-  payload: UniqloSpuResponse
+  payload: UniqloProdInfo
 ): Product {
-  const summary = payload.summary ?? {};
-  const rows = Array.isArray(payload.rows) ? payload.rows : [];
-
-  const skuPrices: number[] = [];
-  const skus: ProductSku[] = rows.map((row, index) => {
-    const priceCent = yuanToCent(row.varyPrice);
-    if (typeof priceCent === "number") {
-      skuPrices.push(priceCent);
-    }
-
-    return {
-      id: row.productId ?? row.omsSkuCode ?? `${fallbackCode}-${index}`,
-      label: buildSkuLabel(row, index),
-      inStock: (row.enabledFlag ?? "").toUpperCase() === "Y",
-      priceCent,
-    };
-  });
-
-  const listPriceCent =
-    yuanToCent(summary.originPrice) ??
-    yuanToCent(summary.maxVaryPrice) ??
-    undefined;
-
-  const priceCent =
-    (skuPrices.length ? Math.min(...skuPrices) : undefined) ??
-    yuanToCent(summary.minVaryPrice) ??
-    listPriceCent;
+  // New API structure mapping
+  const listPriceCent = yuanToCent(payload.originPrice);
+  const priceCent = yuanToCent(payload.minPrice);
 
   const title =
-    summary.fullName?.trim() ||
-    summary.name?.trim() ||
-    `UNIQLO 商品 ${summary.code ?? fallbackCode}`;
+    payload.fullName?.trim() ||
+    payload.name?.trim() ||
+    `UNIQLO 商品 ${payload.productCode ?? fallbackCode}`;
 
-  const inStock = skus.some((sku) => sku.inStock) || undefined;
+  const inStock = (payload.hasStock ?? "").toUpperCase() === "Y";
+
+  // The new API endpoint does not provide detailed SKU lists in the same way.
+  // We will return an empty list for skus, or we could synthesize a single 'default' SKU.
+  // Given the tracking nature, having at least one SKU might be useful, but for now
+  // we follow the plan to keep it minimal as price/stock are top-level.
+  const skus: ProductSku[] = [];
 
   const etag = computeEtag({
     title,
@@ -215,45 +191,20 @@ function mapSpuPayload(
   });
 
   return {
-    productCode: summary.productCode ?? fallbackCode,
+    productCode: payload.productCode ?? fallbackCode,
     title,
     priceCent,
     listPriceCent,
     inStock,
-    imageUrl: pickSummaryImage(summary, fallbackCode),
+    // We try to pick an image if available, otherwise fallback to standard URL builder
+    imageUrl: buildProductImageUrl(payload.productCode ?? fallbackCode),
     skus,
     raw: payload as Prisma.InputJsonValue,
     etag,
   };
 }
 
-function pickSummaryImage(
-  summary: UniqloSpuSummary | undefined,
-  fallbackCode: string
-) {
-  const primaryCode = summary?.productCode ?? summary?.code ?? fallbackCode;
-  const canonicalImage = buildProductImageUrl(primaryCode);
-  const secondaryImage =
-    summary?.code && summary.code !== primaryCode
-      ? buildProductImageUrl(summary.code)
-      : undefined;
 
-  const baseCandidates = [
-    summary?.platformUrl,
-    summary?.coverImageUrl,
-    summary?.listImage,
-  ];
-
-  const candidates = (
-    primaryCode && isApiProductCode(primaryCode)
-      ? [canonicalImage, ...baseCandidates, secondaryImage]
-      : [...baseCandidates, canonicalImage, secondaryImage]
-  )
-    .map((value) => value?.trim())
-    .filter((value): value is string => Boolean(value));
-
-  return candidates[0];
-}
 
 function buildMockProduct(productCode: string): Product {
   const mockBase =
@@ -314,17 +265,6 @@ function yuanToCent(value?: number | string | null): number | undefined {
   }
 
   return Math.round(numeric * 100);
-}
-
-function buildSkuLabel(row: UniqloSkuRow, index: number): string {
-  const style = row.styleText?.trim() || row.style?.trim();
-  const size = row.sizeText?.trim() || row.size?.trim();
-
-  if (style && size) {
-    return `${style} / ${size}`;
-  }
-
-  return style ?? size ?? `SKU ${index + 1}`;
 }
 
 function hashAsInt(value: string): number {
