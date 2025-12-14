@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { TargetPricePopover } from "@/components/target-price-popover";
 
 interface ProductCardProps {
   item: TrackedItem & {
@@ -130,10 +131,16 @@ export function ProductCard({ item, className }: ProductCardProps) {
         <span className="text-[10px] text-muted-foreground/60">
           添加于 {formatDate(item.createdAt).split(" ")[0]}
         </span>
-        <DeleteTrackedItemButton
-          itemId={item.id}
-          itemLabel={item.title ?? `商品 ${item.productCode}`}
-        />
+        <div className="flex items-center gap-1">
+          <TargetPricePopover
+            itemId={item.id}
+            initialTargetPrice={(item.filters as any)?.targetPrice}
+          />
+          <DeleteTrackedItemButton
+            itemId={item.id}
+            itemLabel={item.title ?? `商品 ${item.productCode}`}
+          />
+        </div>
       </CardFooter>
     </Card>
   );
