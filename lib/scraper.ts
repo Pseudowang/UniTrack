@@ -149,7 +149,8 @@ async function fetchUniqloSpuProduct(productCode: string): Promise<Product> {
   const response = await fetch(fetchRequestUrl(productCode), {
     headers: {
       Accept: "application/json",
-      "User-Agent": "unitrack-bot/0.1",
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     },
     cache: "no-store",
   });

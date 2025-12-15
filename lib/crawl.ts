@@ -50,8 +50,15 @@ export async function crawlTrackedItem(
   let snapshot: ProductSnapshot | undefined;
 
   try {
-    snapshot = await prisma.productSnapshot.create({
-      data: {
+    snapshot = await prisma.productSnapshot.upsert({
+      // 进行 etag 比对，避免重复创建
+      where: {
+        trackedItemId_etag: {
+          trackedItemId: trackedItem.id,
+          etag: product.etag,
+        },
+      },
+      create: {
         trackedItemId: trackedItem.id,
         title: product.title,
         priceCent: product.priceCent,
@@ -60,28 +67,9 @@ export async function crawlTrackedItem(
         rawJson: product.raw,
         etag: product.etag,
       },
+      update: {},
     });
   } catch (error) {
-    if (isUniqueConstraintError(error)) {
-      const existingSnapshot = await prisma.productSnapshot.findUnique({
-        where: {
-          trackedItemId_etag: {
-            trackedItemId: trackedItem.id,
-            etag: product.etag,
-          },
-        },
-      });
-
-      if (existingSnapshot) {
-        return {
-          trackedItem,
-          snapshot: existingSnapshot,
-          skipped: true,
-          reason: "etag-duplicate",
-        };
-      }
-    }
-
     throw error;
   }
 
