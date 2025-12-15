@@ -26,6 +26,7 @@ export interface Product {
 
 type MockProductBase = Omit<Product, "productCode" | "raw" | "etag">;
 
+// 模拟商品数据
 const MOCK_PRODUCTS: Record<string, MockProductBase> = {
   "465167": {
     title: "UNIQLO AIRism Cotton Oversized T-Shirt",
@@ -124,11 +125,15 @@ export function computeEtag(payload: {
   return createHash("md5").update(base).digest("hex");
 }
 
+
 export async function fetchProduct(productCode: string): Promise<Product> {
+  // isApiProductCode 判断是否为 API 商品编码
   if (isApiProductCode(productCode)) {
     try {
+      // 通过 fetchUniqloSpuProduct 获取商品信息
       return await fetchUniqloSpuProduct(productCode);
     } catch (error) {
+      // 如果失败，打印错误信息
       if (process.env.NODE_ENV !== "production") {
         console.warn(
           `[scraper] failed to fetch ${productCode} from uniqlo.cn`,
@@ -138,16 +143,17 @@ export async function fetchProduct(productCode: string): Promise<Product> {
     }
   }
 
+  // 如果不是 API 商品编码，返回模拟商品信息
   return buildMockProduct(productCode);
 }
-
+// 构建商品详情页图片 URL
 function fetchRequestUrl(productCode: string) {
   return `${UNIQLO_SPU_API_BASE}/${productCode.toLowerCase()}.json`;
 }
 
 async function fetchUniqloSpuProduct(productCode: string): Promise<Product> {
   const response = await fetch(fetchRequestUrl(productCode), {
-    headers: {
+    headers: {  
       Accept: "application/json",
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -158,11 +164,12 @@ async function fetchUniqloSpuProduct(productCode: string): Promise<Product> {
   if (!response.ok) {
     throw new Error(`Uniqlo API request failed with status ${response.status}`);
   }
-
+  // 按照 UniqloProdInfo 接口解析响应数据
   const payload = (await response.json()) as UniqloProdInfo;
   return mapSpuPayload(productCode, payload);
 }
 
+// 将商品信息映射到 Product 对象
 function mapSpuPayload(
   fallbackCode: string,
   payload: UniqloProdInfo

@@ -19,6 +19,7 @@ export interface CrawlResult {
   reason?: string;
 }
 
+// 获取最新商品快照
 async function getLatestSnapshot(trackedItemId: string) {
   return prisma.productSnapshot.findFirst({
     where: { trackedItemId },
@@ -26,6 +27,7 @@ async function getLatestSnapshot(trackedItemId: string) {
   });
 }
 
+// 判断是否为唯一约束错误
 function isUniqueConstraintError(error: unknown) {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -33,12 +35,14 @@ function isUniqueConstraintError(error: unknown) {
   );
 }
 
+// 抓取商品信息
 export async function crawlTrackedItem(
   trackedItem: TrackedItem
 ): Promise<CrawlResult> {
   const latestSnapshot = await getLatestSnapshot(trackedItem.id);
   const product = await fetchProduct(trackedItem.productCode);
 
+  // 如果 etag 未变化，说明商品信息未发生变化
   if (latestSnapshot?.etag === product.etag) {
     return {
       trackedItem,
