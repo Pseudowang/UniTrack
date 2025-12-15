@@ -23,6 +23,7 @@ export interface SnapshotDiff {
   diff: SnapshotDiffPayload;
 }
 
+// 只关心商品标题、价格、列表价格和库存状态
 const FIELDS: (keyof SnapshotComparable)[] = [
   "title",
   "priceCent",
@@ -30,6 +31,7 @@ const FIELDS: (keyof SnapshotComparable)[] = [
   "inStock",
 ];
 
+// 比较两个商品快照的差异
 export function diffSnapshots(
   previous: SnapshotComparable | null | undefined,
   next: SnapshotComparable
@@ -37,6 +39,7 @@ export function diffSnapshots(
   const diff: SnapshotDiff["diff"] = {};
 
   for (const field of FIELDS) {
+    // 比较字段值
     const prevValue = (previous?.[field] ?? null) as Jsonish;
     const nextValue = ((next as SnapshotComparable)[field] ?? null) as Jsonish;
 
@@ -49,6 +52,7 @@ export function diffSnapshots(
   }
 
   if (!previous) {
+    // 如果没有前一个快照，说明是新商品
     return {
       changed: true,
       changeType: "created",

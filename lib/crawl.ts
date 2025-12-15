@@ -19,6 +19,7 @@ export interface CrawlResult {
   reason?: string;
 }
 
+// 获取最新商品快照
 async function getLatestSnapshot(trackedItemId: string) {
   return prisma.productSnapshot.findFirst({
     where: { trackedItemId },
@@ -26,6 +27,7 @@ async function getLatestSnapshot(trackedItemId: string) {
   });
 }
 
+// 判断是否为唯一约束错误
 function isUniqueConstraintError(error: unknown) {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -33,12 +35,14 @@ function isUniqueConstraintError(error: unknown) {
   );
 }
 
+// 抓取商品信息
 export async function crawlTrackedItem(
   trackedItem: TrackedItem
 ): Promise<CrawlResult> {
   const latestSnapshot = await getLatestSnapshot(trackedItem.id);
   const product = await fetchProduct(trackedItem.productCode);
 
+  // 如果 etag 未变化，说明商品信息未发生变化
   if (latestSnapshot?.etag === product.etag) {
     return {
       trackedItem,
@@ -50,8 +54,15 @@ export async function crawlTrackedItem(
   let snapshot: ProductSnapshot | undefined;
 
   try {
-    snapshot = await prisma.productSnapshot.create({
-      data: {
+    snapshot = await prisma.productSnapshot.upsert({
+      // 进行 etag 比对，避免重复创建
+      where: {
+        trackedItemId_etag: {
+          trackedItemId: trackedItem.id,
+          etag: product.etag,
+        },
+      },
+      create: {
         trackedItemId: trackedItem.id,
         title: product.title,
         priceCent: product.priceCent,
@@ -60,28 +71,9 @@ export async function crawlTrackedItem(
         rawJson: product.raw,
         etag: product.etag,
       },
+      update: {},
     });
   } catch (error) {
-    if (isUniqueConstraintError(error)) {
-      const existingSnapshot = await prisma.productSnapshot.findUnique({
-        where: {
-          trackedItemId_etag: {
-            trackedItemId: trackedItem.id,
-            etag: product.etag,
-          },
-        },
-      });
-
-      if (existingSnapshot) {
-        return {
-          trackedItem,
-          snapshot: existingSnapshot,
-          skipped: true,
-          reason: "etag-duplicate",
-        };
-      }
-    }
-
     throw error;
   }
 
