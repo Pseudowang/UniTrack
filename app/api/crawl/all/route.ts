@@ -3,6 +3,8 @@ import prisma from "@/lib/db";
 import { crawlTrackedItem } from "@/lib/crawl";
 import { auth } from "@/lib/auth";
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export async function POST() {
   const session = await auth();
   if (!session?.user?.id) {
@@ -23,6 +25,9 @@ export async function POST() {
       changeEventId: crawlResult.changeEvent?.id,
       notificationId: crawlResult.notification?.id,
     });
+
+    // Random delay between 500ms and 1500ms to avoid API blocking
+    await sleep(500 + Math.random() * 1000);
   }
 
   const created = results.filter((r) => !r.skipped).length;

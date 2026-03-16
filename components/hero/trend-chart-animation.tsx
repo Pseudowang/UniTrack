@@ -19,19 +19,25 @@ export function TrendChartAnimation() {
   // The color change can be handled by a second overlapping path.
 
   useEffect(() => {
+    let mounted = true;
+
     const sequence = async () => {
-      while (true) {
+      while (mounted) {
+        if (!mounted) break;
         setPhase("draw");
         // 1. Draw the initial line
         await controls.start("draw");
-        
+        if (!mounted) break;
+
         // 2. Drop Phase
         setPhase("drop");
         await controls.start("drop");
-        
+        if (!mounted) break;
+
         // 3. Success Phase
         setPhase("success");
         await new Promise((resolve) => setTimeout(resolve, 3000));
+        if (!mounted) break;
 
         // 4. Reset
         setPhase("reset");
@@ -41,6 +47,11 @@ export function TrendChartAnimation() {
     };
 
     sequence();
+
+    return () => {
+      mounted = false;
+      controls.stop();
+    };
   }, [controls]);
 
   return (
