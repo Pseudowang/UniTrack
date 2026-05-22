@@ -20,6 +20,16 @@ export const trackedItemPayloadSchema = z.object({
     }, "仅支持 uniqlo.cn 商品链接或合法 productCode"),
 });
 
+export const targetPricePayloadSchema = z.object({
+  targetPrice: z
+    .number({
+      invalid_type_error: "目标价格必须是数字",
+      required_error: "请提供目标价格",
+    })
+    .int("目标价格必须使用分为单位")
+    .min(0, "目标价格不能小于 0"),
+});
+
 export const signUpSchema = z
   .object({
     email: z.string().email("请输入合法邮箱"),

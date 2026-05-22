@@ -1,11 +1,12 @@
-
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { PAGINATION_CONFIG } from "@/lib/constants";
 
-import { AddItemForm } from "@/components/add-item-form";
 import { CrawlAllButton } from "@/components/crawl-all-button";
 import { ProductCard } from "@/components/product-card";
+import { TrackedItemForm } from "@/components/tracked-item-form";
 import {
   Card,
   CardContent,
@@ -15,28 +16,52 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
+interface DashboardPageProps {
+  searchParams?: Promise<{
+    page?: string;
+  }>;
+}
 
+function parsePage(value?: string) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0
+    ? parsed
+    : PAGINATION_CONFIG.DEFAULT_PAGE;
+}
 
-
-export default async function DashboardPage() {
+/**
+ * 展示当前用户的追踪商品列表和最近通知。
+ */
+export default async function DashboardPage({
+  searchParams,
+}: DashboardPageProps) {
   const session = await auth();
   if (!session?.user?.id) {
     redirect("/auth/signin");
   }
 
   const displayName = session.user.email ?? "Unitrack 用户";
+  const resolvedSearchParams = (await searchParams) ?? {};
+  const page = parsePage(resolvedSearchParams.page);
+  const pageSize = PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
 
-  const [trackedItems, notifications] = await Promise.all([
+  const [trackedItems, totalTrackedItems, notifications] = await Promise.all([
     prisma.trackedItem.findMany({
       where: { userId: session.user.id },
       orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
       include: {
         snapshots: {
           orderBy: { fetchedAt: "desc" },
           take: 1,
         },
       },
+    }),
+    prisma.trackedItem.count({
+      where: { userId: session.user.id },
     }),
     prisma.notification.findMany({
       where: { userId: session.user.id },
@@ -51,6 +76,8 @@ export default async function DashboardPage() {
       },
     }),
   ]);
+  const hasPreviousPage = page > 1;
+  const hasNextPage = page * pageSize < totalTrackedItems;
 
   return (
     <main className="min-h-screen bg-background">
@@ -77,7 +104,7 @@ export default async function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <AddItemForm />
+            <TrackedItemForm variant="inline" />
           </CardContent>
           <CardFooter className="flex flex-col gap-4 border-t border-border/40 pt-6 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
             <p>系统每隔数小时自动抓取。需要立即更新可手动触发。</p>
@@ -89,10 +116,10 @@ export default async function DashboardPage() {
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="text-2xl font-semibold">
-                追踪清单（{trackedItems.length}）
+                追踪清单（{totalTrackedItems}）
               </h2>
               <p className="text-sm text-muted-foreground">
-                实时展示最近一次抓取的价格、库存与状态。
+                当前展示第 {page} 页，每页 {pageSize} 条，实时展示最近一次抓取的价格、库存与状态。
               </p>
             </div>
           </div>
@@ -103,11 +130,61 @@ export default async function DashboardPage() {
               </AlertDescription>
             </Alert>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {trackedItems.map((item) => {
-                
-return <ProductCard key={item.id} item={item} />;
-              })}
+            <>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {trackedItems.map((item) => (
+                  <ProductCard key={item.id} item={item} />
+                ))}
+              </div>
+              <div className="flex items-center justify-between pt-2">
+                <Button variant="outline" disabled={!hasPreviousPage} asChild={hasPreviousPage}>
+                  {hasPreviousPage ? (
+                    <Link href={`/dashboard?page=${page - 1}`}>上一页</Link>
+                  ) : (
+                    <span>上一页</span>
+                  )}
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  第 {page} 页
+                </span>
+                <Button variant="outline" disabled={!hasNextPage} asChild={hasNextPage}>
+                  {hasNextPage ? (
+                    <Link href={`/dashboard?page=${page + 1}`}>下一页</Link>
+                  ) : (
+                    <span>下一页</span>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
+        </section>
+
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-2xl font-semibold">最近通知</h2>
+            <p className="text-sm text-muted-foreground">
+              展示最近 10 条价格变化或库存变化通知。
+            </p>
+          </div>
+          {notifications.length === 0 ? (
+            <Alert className="card-on-white">
+              <AlertDescription>暂无通知记录。</AlertDescription>
+            </Alert>
+          ) : (
+            <div className="grid gap-3">
+              {notifications.map((notification) => (
+                <Card key={notification.id} className="card-on-white gap-3">
+                  <CardContent className="flex flex-col gap-1 pt-6">
+                    <p className="text-sm font-medium">
+                      {notification.changeEvent.trackedItem.title ??
+                        `商品 ${notification.changeEvent.trackedItem.productCode}`}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      通道：{notification.channel}，状态：{notification.status}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </section>

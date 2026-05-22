@@ -1,9 +1,9 @@
 import { createHash } from "crypto";
 import type { Prisma } from "@prisma/client";
+import { UNIQLO_API } from "./constants";
 import { buildProductImageUrl, isApiProductCode } from "./product-code";
 
-export const UNIQLO_SPU_API_BASE =
-  "https://www.uniqlo.cn/data/products/prodInfo/zh_CN/";
+export const UNIQLO_SPU_API_BASE = UNIQLO_API.PRODUCT_INFO_BASE_URL;
 
 export interface ProductSku {
   id: string;
@@ -109,6 +109,9 @@ interface UniqloProdInfo {
   [key: string]: unknown;
 }
 
+/**
+ * 根据商品关键字段生成稳定的 etag，用于判断快照是否发生变化。
+ */
 export function computeEtag(payload: {
   title?: string | null;
   priceCent?: number | null;
@@ -125,35 +128,37 @@ export function computeEtag(payload: {
   return createHash("md5").update(base).digest("hex");
 }
 
-
+/**
+ * 获取商品数据。
+ * API 编码优先走官方接口，失败时回退到本地 mock 数据，方便教学和离线演示。
+ */
 export async function fetchProduct(productCode: string): Promise<Product> {
-  // isApiProductCode 判断是否为 API 商品编码
   if (isApiProductCode(productCode)) {
     try {
-      // 通过 fetchUniqloSpuProduct 获取商品信息
       return await fetchUniqloSpuProduct(productCode);
     } catch (error) {
-      // 如果失败，打印错误信息
       if (process.env.NODE_ENV !== "production") {
         console.warn(
-          `[scraper] failed to fetch ${productCode} from uniqlo.cn`,
+          `[scraper] 获取 ${productCode} 的官方数据失败，将回退到 mock 数据`,
           error
         );
       }
     }
   }
 
-  // 如果不是 API 商品编码，返回模拟商品信息
   return buildMockProduct(productCode);
 }
-// 构建商品详情页图片 URL
+
 function fetchRequestUrl(productCode: string) {
   return `${UNIQLO_SPU_API_BASE}/${productCode.toLowerCase()}.json`;
 }
 
+/**
+ * 从 UNIQLO 官方接口抓取 SPU 商品数据。
+ */
 async function fetchUniqloSpuProduct(productCode: string): Promise<Product> {
   const response = await fetch(fetchRequestUrl(productCode), {
-    headers: {  
+    headers: {
       Accept: "application/json",
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -162,19 +167,20 @@ async function fetchUniqloSpuProduct(productCode: string): Promise<Product> {
   });
 
   if (!response.ok) {
-    throw new Error(`Uniqlo API request failed with status ${response.status}`);
+    throw new Error(`UNIQLO 接口请求失败，状态码：${response.status}`);
   }
-  // 按照 UniqloProdInfo 接口解析响应数据
+
   const payload = (await response.json()) as UniqloProdInfo;
   return mapSpuPayload(productCode, payload);
 }
 
-// 将商品信息映射到 Product 对象
+/**
+ * 将官方接口返回的数据转换为应用内部的 Product 结构。
+ */
 function mapSpuPayload(
   fallbackCode: string,
   payload: UniqloProdInfo
 ): Product {
-  // New API structure mapping
   const listPriceCent = yuanToCent(payload.originPrice);
   const priceCent = yuanToCent(payload.minPrice);
 
@@ -184,11 +190,6 @@ function mapSpuPayload(
     `UNIQLO 商品 ${payload.productCode ?? fallbackCode}`;
 
   const inStock = (payload.hasStock ?? "").toUpperCase() === "Y";
-
-  // The new API endpoint does not provide detailed SKU lists in the same way.
-  // We will return an empty list for skus, or we could synthesize a single 'default' SKU.
-  // Given the tracking nature, having at least one SKU might be useful, but for now
-  // we follow the plan to keep it minimal as price/stock are top-level.
   const skus: ProductSku[] = [];
 
   const etag = computeEtag({
@@ -204,7 +205,6 @@ function mapSpuPayload(
     priceCent,
     listPriceCent,
     inStock,
-    // We try to pick an image if available, otherwise fallback to standard URL builder
     imageUrl: buildProductImageUrl(payload.productCode ?? fallbackCode),
     skus,
     raw: payload as Prisma.InputJsonValue,
@@ -246,7 +246,7 @@ function buildMockBaseFromCode(productCode: string): MockProductBase {
   const fallbackPrice = (Math.abs(hashAsInt(productCode)) % 80000) + 9900;
 
   return {
-    title: `UNIQLO Product ${productCode}`,
+    title: `UNIQLO 商品 ${productCode}`,
     priceCent: fallbackPrice,
     listPriceCent: fallbackPrice + 3000,
     inStock: true,
@@ -254,7 +254,7 @@ function buildMockBaseFromCode(productCode: string): MockProductBase {
     skus: [
       {
         id: `${productCode}-DEFAULT`,
-        label: `Default / One Size`,
+        label: `默认 / 均码`,
         inStock: true,
         priceCent: fallbackPrice,
       },

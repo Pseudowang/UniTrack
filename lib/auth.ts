@@ -19,10 +19,10 @@ export const {
   },
   providers: [
     CredentialsProvider({
-      name: "Email & Password",
+      name: "邮箱密码登录",
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email: { label: "邮箱", type: "email" },
+        password: { label: "密码", type: "password" },
       },
       authorize: async (credentials) => {
         const parsed = signInSchema.safeParse({

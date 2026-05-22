@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
-import { TrackedItem, ProductSnapshot } from "@prisma/client";
 
 import { buildProductImageUrl } from "@/lib/product-code";
 import { cn, formatDate, formatPrice } from "@/lib/utils";
@@ -15,17 +14,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { TargetPricePopover } from "@/components/target-price-popover";
+import {
+  parseTrackedItemFilters,
+  type TrackedItemWithLatestSnapshot,
+} from "@/types";
 
 interface ProductCardProps {
-  item: TrackedItem & {
-    snapshots: ProductSnapshot[];
-  };
+  item: TrackedItemWithLatestSnapshot;
   className?: string;
 }
 
 export function ProductCard({ item, className }: ProductCardProps) {
   const snapshot = item.snapshots[0];
   const imageUrl = item.imageUrl ?? buildProductImageUrl(item.productCode);
+  const filters = parseTrackedItemFilters(item.filters);
   const showListPrice =
     snapshot?.listPriceCent != null &&
     snapshot.listPriceCent !== snapshot?.priceCent;
@@ -134,7 +136,7 @@ export function ProductCard({ item, className }: ProductCardProps) {
         <div className="flex items-center gap-1">
           <TargetPricePopover
             itemId={item.id}
-            initialTargetPrice={(item.filters as any)?.targetPrice}
+            initialTargetPrice={filters.targetPrice}
           />
           <DeleteTrackedItemButton
             itemId={item.id}

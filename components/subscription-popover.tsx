@@ -43,7 +43,7 @@ export function SubscriptionPopover() {
       <PopoverTrigger asChild>
         <Button variant="ghost" className="gap-2">
            <Mail className="h-4 w-4" />
-           Sub
+           订阅
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0 overflow-hidden" align="end">
@@ -71,7 +71,7 @@ export function SubscriptionPopover() {
             ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="sr-only">Email</Label>
+                    <Label htmlFor="email" className="sr-only">邮箱</Label>
                     <Input
                       id="email"
                       placeholder="name@example.com"

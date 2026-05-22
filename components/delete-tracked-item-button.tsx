@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { getApiErrorMessage } from "@/lib/api-client";
+import type { ApiResponse } from "@/types";
 
 interface DeleteTrackedItemButtonProps {
   itemId: string;
@@ -33,12 +35,14 @@ export function DeleteTrackedItemButton({
       const response = await fetch(`/api/items/${itemId}`, {
         method: "DELETE",
       });
-      const data = await response.json();
+      const data = (await response.json().catch(() => null)) as ApiResponse<{
+        id: string;
+      }> | null;
 
       if (!response.ok) {
         toast({
           title: "删除失败",
-          description: data?.error ?? "请稍后再试",
+          description: getApiErrorMessage(data, "请稍后再试"),
           variant: "destructive",
         });
         return;

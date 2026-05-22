@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { NewItemForm } from "@/components/forms/new-item-form";
+import { TrackedItemForm } from "@/components/tracked-item-form";
 import { auth } from "@/lib/auth";
 
 export default async function NewItemPage() {
@@ -25,7 +25,7 @@ export default async function NewItemPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <NewItemForm />
+          <TrackedItemForm showPreview />
         </CardContent>
       </Card>
       <div className="rounded-md border bg-muted/30 p-4 text-sm text-muted-foreground">

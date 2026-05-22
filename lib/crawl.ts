@@ -6,6 +6,7 @@ import {
   type TrackedItem,
 } from "@prisma/client";
 import prisma from "./db";
+import { AppError, ErrorCode } from "./errors";
 import { fetchProduct } from "./scraper";
 import { diffSnapshots } from "./diff";
 import { notify } from "./notify";
@@ -19,7 +20,9 @@ export interface CrawlResult {
   reason?: string;
 }
 
-// 获取最新商品快照
+/**
+ * 获取某个追踪商品的最新快照。
+ */
 async function getLatestSnapshot(trackedItemId: string) {
   return prisma.productSnapshot.findFirst({
     where: { trackedItemId },
@@ -27,7 +30,9 @@ async function getLatestSnapshot(trackedItemId: string) {
   });
 }
 
-// 判断是否为唯一约束错误
+/**
+ * 判断 Prisma 错误是否为唯一约束冲突。
+ */
 function isUniqueConstraintError(error: unknown) {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -35,27 +40,27 @@ function isUniqueConstraintError(error: unknown) {
   );
 }
 
-// 抓取商品信息
+/**
+ * 抓取并持久化单个追踪商品的最新状态。
+ * 如果 etag 未变化，则直接跳过；
+ * 如果检测到变化，则创建变更事件和通知记录。
+ */
 export async function crawlTrackedItem(
   trackedItem: TrackedItem
 ): Promise<CrawlResult> {
-  const latestSnapshot = await getLatestSnapshot(trackedItem.id);
-  const product = await fetchProduct(trackedItem.productCode);
-
-  // 如果 etag 未变化，说明商品信息未发生变化
-  if (latestSnapshot?.etag === product.etag) {
-    return {
-      trackedItem,
-      skipped: true,
-      reason: "etag-unchanged",
-    };
-  }
-
-  let snapshot: ProductSnapshot | undefined;
-
   try {
-    snapshot = await prisma.productSnapshot.upsert({
-      // 进行 etag 比对，避免重复创建
+    const latestSnapshot = await getLatestSnapshot(trackedItem.id);
+    const product = await fetchProduct(trackedItem.productCode);
+
+    if (latestSnapshot?.etag === product.etag) {
+      return {
+        trackedItem,
+        skipped: true,
+        reason: "etag-unchanged",
+      };
+    }
+
+    const snapshot = await prisma.productSnapshot.upsert({
       where: {
         trackedItemId_etag: {
           trackedItemId: trackedItem.id,
@@ -73,61 +78,87 @@ export async function crawlTrackedItem(
       },
       update: {},
     });
-  } catch (error) {
-    throw error;
-  }
 
-  if (!snapshot) {
-    throw new Error("Failed to create product snapshot");
-  }
+    await prisma.trackedItem.update({
+      where: { id: trackedItem.id },
+      data: {
+        title: product.title ?? trackedItem.title,
+        imageUrl: product.imageUrl ?? trackedItem.imageUrl,
+      },
+    });
 
-  await prisma.trackedItem.update({
-    where: { id: trackedItem.id },
-    data: {
-      title: product.title ?? trackedItem.title,
-      imageUrl: product.imageUrl ?? trackedItem.imageUrl,
-    },
-  });
+    const diffResult = diffSnapshots(latestSnapshot, product);
 
-  const diffResult = diffSnapshots(latestSnapshot, product);
+    if (!diffResult.changed) {
+      return {
+        trackedItem,
+        snapshot,
+        skipped: false,
+        reason: "no-diff",
+      };
+    }
 
-  if (!diffResult.changed) {
+    const changeEvent = await prisma.changeEvent.create({
+      data: {
+        trackedItemId: trackedItem.id,
+        snapshotId: snapshot.id,
+        changeType: diffResult.changeType,
+        diff: diffResult.diff,
+      },
+    });
+
+    const notification = await prisma.notification.create({
+      data: {
+        userId: trackedItem.userId,
+        changeEventId: changeEvent.id,
+        channel: "in_app",
+        status: "pending",
+        meta: {
+          summary: diffResult.diff,
+        },
+      },
+    });
+
+    await notify(notification);
+
+    const deliveredNotification = await prisma.notification.findUnique({
+      where: { id: notification.id },
+    });
+
     return {
       trackedItem,
       snapshot,
+      changeEvent,
+      notification: deliveredNotification ?? notification,
       skipped: false,
-      reason: "no-diff",
     };
-  }
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      return {
+        trackedItem,
+        skipped: true,
+        reason: "snapshot-already-exists",
+      };
+    }
 
-  const changeEvent = await prisma.changeEvent.create({
-    data: {
+    console.error("[crawlTrackedItem] failed", {
       trackedItemId: trackedItem.id,
-      snapshotId: snapshot.id,
-      changeType: diffResult.changeType,
-      diff: diffResult.diff,
-    },
-  });
+      productCode: trackedItem.productCode,
+      error,
+    });
 
-  const notification = await prisma.notification.create({
-    data: {
-      userId: trackedItem.userId,
-      changeEventId: changeEvent.id,
-      channel: "in_app",
-      status: "pending",
-      meta: {
-        summary: diffResult.diff,
-      },
-    },
-  });
+    if (error instanceof AppError) {
+      throw error;
+    }
 
-  await notify(notification);
-
-  return {
-    trackedItem,
-    snapshot,
-    changeEvent,
-    notification,
-    skipped: false,
-  };
+    throw new AppError(
+      ErrorCode.EXTERNAL_API_ERROR,
+      "抓取商品信息失败",
+      502,
+      {
+        trackedItemId: trackedItem.id,
+        productCode: trackedItem.productCode,
+      }
+    );
+  }
 }

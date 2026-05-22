@@ -1,86 +1,138 @@
-import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
+import { auth } from "@/lib/auth";
+import { PAGINATION_CONFIG } from "@/lib/constants";
+import { successResponse, handleRouteError } from "@/lib/api-response";
+import { AppError, ErrorCode } from "@/lib/errors";
 import { trackedItemPayloadSchema } from "@/lib/validators";
 import { parseProductCode } from "@/lib/product-code";
 import { UNIQLO_SPU_API_BASE } from "@/lib/scraper";
-import { auth } from "@/lib/auth";
 
-export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+/**
+ * 解析分页参数，非法值回退到默认值。
+ */
+function parsePositiveInt(value: string | null, fallback: number) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return fallback;
   }
 
-  const json = await request.json().catch(() => null);
+  return parsed;
+}
 
-  const parsed = trackedItemPayloadSchema.safeParse(json);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.errors[0]?.message ?? "Invalid payload" },
-      { status: 400 }
-    );
-  }
-
-  let productCode: string;
-  let isUrl = false;
-  let kind: "detail" | "api" | "code" = "code";
+/**
+ * 分页获取当前登录用户的追踪商品列表。
+ */
+export async function GET(request: Request) {
   try {
-    const result = parseProductCode(parsed.data.value);
-    productCode = result.productCode;
-    isUrl = result.isUrl;
-    kind = result.kind;
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new AppError(ErrorCode.UNAUTHORIZED, "请先登录", 401);
+    }
+
+    const { searchParams } = new URL(request.url);
+    const page = parsePositiveInt(
+      searchParams.get("page"),
+      PAGINATION_CONFIG.DEFAULT_PAGE
+    );
+    const requestedPageSize = parsePositiveInt(
+      searchParams.get("pageSize"),
+      PAGINATION_CONFIG.DEFAULT_PAGE_SIZE
+    );
+    const pageSize = Math.min(
+      requestedPageSize,
+      PAGINATION_CONFIG.MAX_PAGE_SIZE
+    );
+
+    const where = { userId: session.user.id };
+    const [items, total] = await Promise.all([
+      prisma.trackedItem.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        include: {
+          snapshots: {
+            orderBy: { fetchedAt: "desc" },
+            take: 1,
+          },
+        },
+      }),
+      prisma.trackedItem.count({ where }),
+    ]);
+
+    return successResponse(
+      {
+        items,
+        total,
+        page,
+        pageSize,
+        hasMore: page * pageSize < total,
+      },
+      "获取追踪列表成功"
+    );
   } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unsupported product URL or code",
-      },
-      { status: 400 }
-    );
+    return handleRouteError(error);
   }
+}
 
-  const normalizedUrl = isUrl
-    ? parsed.data.value.trim()
-    : kind === "api"
-    ? `${UNIQLO_SPU_API_BASE}/${productCode.toLowerCase()}.json`
-    : // : `https://www.uniqlo.cn/product-detail.html?productCode=${productCode}`;
-      `https://www.uniqlo.cn/data/products/spu/zh_CN/${productCode}`;
+/**
+ * 创建新的追踪商品，已存在时返回已追踪状态。
+ */
+export async function POST(request: Request) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new AppError(ErrorCode.UNAUTHORIZED, "请先登录", 401);
+    }
 
-  const existing = await prisma.trackedItem.findUnique({
-    where: {
-      userId_productCode: {
+    const json = await request.json().catch(() => null);
+    const parsed = trackedItemPayloadSchema.parse(json);
+    const result = parseProductCode(parsed.value);
+
+    const normalizedUrl = result.isUrl
+      ? parsed.value.trim()
+      : result.kind === "api"
+      ? `${UNIQLO_SPU_API_BASE}/${result.productCode.toLowerCase()}.json`
+      : `https://www.uniqlo.cn/data/products/spu/zh_CN/${result.productCode}`;
+
+    const existing = await prisma.trackedItem.findUnique({
+      where: {
+        userId_productCode: {
+          userId: session.user.id,
+          productCode: result.productCode,
+        },
+      },
+    });
+
+    if (existing) {
+      return successResponse(
+        {
+          item: existing,
+          status: "already-tracking" as const,
+        },
+        "该商品已在追踪列表中",
+        200
+      );
+    }
+
+    const item = await prisma.trackedItem.create({
+      data: {
         userId: session.user.id,
-        productCode,
+        productCode: result.productCode,
+        url: normalizedUrl,
+        filters: {},
       },
-    },
-  });
+    });
 
-  if (existing) {
-    return NextResponse.json(
+    return successResponse(
       {
-        message: "already-tracking",
-        item: existing,
+        item,
+        status: "created" as const,
       },
-      { status: 200 }
+      "创建追踪商品成功",
+      201
     );
+  } catch (error) {
+    return handleRouteError(error);
   }
-
-  const item = await prisma.trackedItem.create({
-    data: {
-      userId: session.user.id,
-      productCode,
-      url: normalizedUrl,
-      filters: {},
-    },
-  });
-
-  return NextResponse.json(
-    {
-      message: "created",
-      item,
-    },
-    { status: 201 }
-  );
 }

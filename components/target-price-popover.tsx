@@ -11,7 +11,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
+import { getApiErrorMessage } from "@/lib/api-client";
 import { Settings, Loader2 } from "lucide-react";
+import type { ApiResponse } from "@/types";
 
 interface TargetPricePopoverProps {
   itemId: string;
@@ -53,9 +55,12 @@ export function TargetPricePopover({
           targetPrice: targetPriceCent,
         }),
       });
+      const payload = (await response.json().catch(() => null)) as ApiResponse<{
+        item: { id: string };
+      }> | null;
 
       if (!response.ok) {
-        throw new Error("更新失败");
+        throw new Error(getApiErrorMessage(payload, "更新失败"));
       }
 
       toast({

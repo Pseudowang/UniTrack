@@ -6,7 +6,9 @@ import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getApiErrorMessage } from "@/lib/api-client";
 import { signUpSchema } from "@/lib/validators";
+import type { ApiResponse } from "@/types";
 
 export function SignUpForm() {
   const router = useRouter();
@@ -34,12 +36,12 @@ export function SignUpForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsed.data),
       });
+      const payload = (await response.json().catch(() => null)) as ApiResponse<{
+        user: { id: string; email: string };
+      }> | null;
 
       if (!response.ok) {
-        const message = await response
-          .json()
-          .catch(() => ({ error: "注册失败" }));
-        setError(message.error ?? "注册失败");
+        setError(getApiErrorMessage(payload, "注册失败"));
         return;
       }
 
