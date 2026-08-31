@@ -1,3 +1,5 @@
+
+
 # Unitrack
 
 [中文文档 (Chinese README)](./zhREADME.md)
@@ -48,6 +50,8 @@ Optional but recommended in production:
 npm run db:push
 npm run db:seed
 ```
+
+The seed creates a demo account (`demo@unitrack.local` / `password123`).
 
 ### 4. Run in development
 
